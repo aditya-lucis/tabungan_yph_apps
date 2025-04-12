@@ -8,6 +8,7 @@ use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\InboxController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\ValidatedController;
 use Illuminate\Support\Facades\Auth;
@@ -74,25 +75,7 @@ Route::middleware(['auth'])->group(function (){
     Route::get('/termandcondition', [TermAndConditionController::class, 'add'])->name('sk-add');
     Route::put('/pengajuan/termandcondition', [TermAndConditionController::class, 'store'])->name('termandcondition.store');
     Route::resource('/validate', ValidatedController::class);
-
-    Route::post('/notifications/read/{id}', function ($id) {
-        $user = Auth::user();
-        
-        Log::info('Current user: ', ['user' => $user]);
-    
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated'], 401);
-        }
-    
-        // dump method existence
-        if (!method_exists($user, 'notifications')) {
-            return response()->json(['error' => 'notifications() method not available on user'], 500);
-        }
-    
-        $notif = $user->notifications()->findOrFail($id);
-        $notif->markAsRead();
-    
-        return response()->json(['success' => true]);
-    });
+    Route::get('/notifications/list', [NotificationController::class, 'index']);
+    Route::post('/notifications/read/{id}', [NotificationController::class, 'read']);
     
 });

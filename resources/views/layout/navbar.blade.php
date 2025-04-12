@@ -45,51 +45,20 @@
           @endforeach
       </ul>
         </div><!-- az-header-menu -->
-        @php
-            $notifs = auth()->user()->unreadNotifications;
-            $unreadCount = auth()->user()->unreadNotifications->count();
-            $maxToShow = 5;
-        @endphp
         <div class="az-header-right">
           <div class="dropdown az-header-notification">
-            <a href="" class="az-bell {{ $unreadCount > 0 ? 'new' : '' }}"><i class="typcn typcn-bell"></i></a>
+            <a href="#" class="az-bell" id="notifBell"><i class="typcn typcn-bell"></i></a>
             <div class="dropdown-menu">
               <div class="az-dropdown-header mg-b-20 d-sm-none">
-                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
+                <a href="#" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
               </div>
               <h6 class="az-notification-title">Notifications</h6>
-              <p class="az-notification-text">You have {{ $unreadCount }} unread notification</p>
-                <div class="az-notification-list" id="notif-list" style="max-height: 300px; overflow-y: auto;">
-                  @foreach ($notifs as $index => $notif)
-                    @php
-                      $isUnread = is_null($notif->read_at);
-                      $icon = $notif->data['type'] == 'request_created' ? '📝' : ($notif->data['status'] == 1 ? '✅' : '❌');
-                      $color = $isUnread ? 'text-primary' : 'text-muted';
-                    @endphp
-
-                    <div class="media {{ $isUnread ? 'new' : '' }} notif-item {{ $index >= $maxToShow ? 'extra-notif d-none' : '' }}" data-id="{{ $notif->id }}">
-                      <div class="az-img-user">
-                        <span class="{{ $color }}">{{ $icon }}</span>
-                      </div>
-                      <div class="media-body">
-                        <a href="{{ $notif->data['url'] }}" 
-                          class="notif-link text-dark d-block mb-1" 
-                          data-id="{{ $notif->id }}" 
-                          data-href="{{ $notif->data['url'] }}" 
-                          style="cursor: pointer; text-decoration: none;">
-                          {{ $notif->data['message'] }}
-                        </a>
-                        <span class="text-muted">{{ $notif->created_at->diffForHumans() }}</span>
-                      </div>
-                    </div>
-                  @endforeach
-                </div>
-                @if ($unreadCount > $maxToShow)
-                  <div class="dropdown-footer">
-                    <a href="javascript:void(0)" id="toggleNotif">View All Notifications</a>
-                  </div>
-                @endif
-            </div><!-- dropdown-menu -->
+              <p class="az-notification-text" id="notifText">Loading notifications...</p>
+              <div class="az-notification-list" id="notif-list" style="max-height: 300px; overflow-y: auto;"></div>
+              <div class="dropdown-footer d-none" id="notifToggleWrapper">
+                <a href="javascript:void(0)" id="toggleNotif">View All Notifications</a>
+              </div>
+            </div>
           </div><!-- az-header-notification -->
           <div class="dropdown az-profile-menu">
             <a href="" class="az-img-user"><img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" alt=""></a>
