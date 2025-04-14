@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YPH</title>
   <link rel="stylesheet" href="{{ URL::asset('assets/auth/css/style.css') }}">
-  <link rel="icon" type="image/x-icon" href="{{ asset('assets/auth/img/thumb.jpg') }}">
+  <link rel="icon" type="image/x-icon" href="{{ asset('assets/auth/img/thumb1.png') }}">
 </head>
 <body>
   <div class="wrapper">

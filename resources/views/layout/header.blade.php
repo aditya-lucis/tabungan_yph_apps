@@ -21,7 +21,7 @@
     <meta name="author" content="BootstrapDash">
     <title>YPH</title>
     
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/auth/img/thumb.jpg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/auth/img/thumb1.png') }}">
     @include('layout.css')
     <!-- Vendor CSS -->
   </head>
