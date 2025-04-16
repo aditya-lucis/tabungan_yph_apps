@@ -12,7 +12,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-10 col-lg-8 col-xl-">
+    <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="card card-body pd-40">
             <!-- Cek apakah halaman ini untuk Edit atau Tambah -->
             <form action="{{ isset($employee) ? route('employee.update', $employee->id) : route('employee.store') }}" method="post">

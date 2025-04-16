@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ReqApprovalExport;
+use App\Mail\CustomEmail;
 use App\Models\DataAnak;
 use App\Models\ReqApproval;
 use App\Models\Transaction;
@@ -10,6 +11,7 @@ use App\Notifications\NotifReqApprovalUpdated;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -102,6 +104,33 @@ class InboxController extends Controller
 
         if ($pengaju) {
             $pengaju->notify(new NotifReqApprovalUpdated($query));
+        }
+
+        $nominalreq = number_format($query->nominal, 2);
+        $nominalapprove = number_format($request->nominal_input, 2);
+        $fibalbalance = $anakData->latestTransaction->final_balance - $request->nominal_input;
+        $fibalbalancefix = number_format($fibalbalance, 2);
+
+        $title = $request->status == 1 
+            ? "Persetujuan Pencairan Saldo Tabungan" 
+            : "Penolakan Pencairan Saldo Tabungan";
+
+        $body = $request->status == 1
+            ? "Pencairan saldo tabungan atas nama $anakData->nama telah disetujui dengan nominal yang disetujui Rp. $nominalapprove. Sekarang sisa saldo tabungan $anakData->nama adalah Rp. $fibalbalancefix. \nPesan dari kami: $request->note_input."
+            : "Mohon maaf, pengajuan pencairan saldo tabungan kamu atas nama $anakData->nama sebesar Rp. $nominalreq tidak bisa disetujui. Untuk info lebih lanjut anda bisa menghubungi bagian Divisi Pendidikan Yayasan Persada Hati.";
+
+
+        $emailData = [
+            'title' => $title,
+            'body' => $body,
+            'subject' => $title,
+            'alert' => false
+        ];
+
+        $toEmail = $pengaju->email;
+
+        if ($toEmail) {
+            Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
 
         return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui']);

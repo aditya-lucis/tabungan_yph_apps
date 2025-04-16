@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PengajuanController;
@@ -77,5 +78,7 @@ Route::middleware(['auth'])->group(function (){
     Route::resource('/validate', ValidatedController::class);
     Route::get('/notifications/list', [NotificationController::class, 'index']);
     Route::post('/notifications/read/{id}', [NotificationController::class, 'read']);
-    
+
+    Route::get('/email/configuration', [EmailController::class, 'index'])->name('email.index');
+    Route::put('/email/configuration', [EmailController::class, 'update'])->name('email-update');
 });

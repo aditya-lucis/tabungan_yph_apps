@@ -64,6 +64,11 @@ return [
                     'pattern' => '/users',
                 ],
                 [
+                    'name' => 'Email Configuration',
+                    'route' => 'email.index',
+                    'pattern' => '/email/configuration',
+                ],
+                [
                     'name' => 'Term & Condition',
                     'route' => 'sk-add',
                     'pattern' => '/termandcondition',

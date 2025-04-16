@@ -6,6 +6,7 @@ use App\Exports\AnakFormatExport;
 use App\Exports\SaldoAnakFormatExport;
 use App\Imports\DataAnakImport;
 use App\Imports\DataSaldoAnakImport;
+use App\Mail\CustomEmail;
 use App\Models\ApprovalFirst;
 use App\Models\DataAnak;
 use App\Models\Employee;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
 
 class PengajuanController extends Controller
@@ -114,11 +116,23 @@ class PengajuanController extends Controller
                 }
 
                 // Simpan transaksi
-                // Transaction::createTransaction($anakData->id, $saldoSekolah->total, 0, 'PENAMBAHAN KUOTA');
                 $req = ApprovalFirst::create([
                         'id_anak' => $anakData->id,
                         'status' => 0,
                     ]);
+
+                $employee = Employee::find($employeeId);
+
+                $toEmail = $employee->user->email;
+
+                $emailData = [
+                    'title' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
+                    'body' => "Halo $employee->name, terima kasih atas kepercayaan Anda, Anda baru saja mengajukan pendaftaran peserta tabungan pendidikan untuk anak anda yang bernama $anakData->nama, yang bersekolah di $anakData->nama_sekolah. Silahkan menunggu konfirmasi selanjutnya, atau bila ingin info lebih lanjut, anda bisa menghubungi Divisi Pendidikan Yayasan Persada Hati.",
+                    'subject' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
+                    'alert' => true
+                ];
+
+                Mail::to($toEmail)->queue(new CustomEmail($emailData));
 
                 $admins = User::where('role', 'adm')->get();
                 foreach ($admins as $admin) {
@@ -186,6 +200,21 @@ class PengajuanController extends Controller
         foreach ($admins as $admin) {
             $admin->notify(new NotifReqApprovalCreated($req));
         }
+
+        $nominalreq = number_format($request->nominal, 2);
+        
+        $emailData = [
+            'title' => 'Permohonan Pencairan Saldo Tabungan',
+            'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk $anakData->nama sebesar Rp. $nominalreq. Silahkan menunggu kabar balasan dari Yayasan Pesada Hati Divisi Pendidikan.",
+            'subject' => 'Permohonan Pencairan Saldo Tabungan',
+            'alert' => true
+        ];
+
+        $toEmail = $anakData->karyawan->user->email;
+
+        if ($toEmail) {
+            Mail::to($toEmail)->queue(new CustomEmail($emailData));
+        }
     
         if ($anakData) {
             return response()->json(['success' => true, 'message' => "Form yang lengkap akan memudahkan pencairan dana. Jadi lengkapi form anda untuk kemudahan pencairan."]);
@@ -229,6 +258,22 @@ class PengajuanController extends Controller
 
         if ($user) {
             $user->notify(new NotifAddCreditScore($query));
+        }
+
+        $toEmail = $user->email;
+        $nominal = number_format($request->nominaltotal, 2);
+        $totalscore = $query->latestTransaction->final_balance;
+        $totalscorefix = number_format($totalscore, 2);
+
+        $emailData = [
+            'title' => 'Penambahan Saldo Tabungan',
+            'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka $request->notesdescript. Kini tabungan $query->nama bertambah sebesar Rp. $totalscorefix.",
+            'subject' => 'Penambahan Saldo Tabungan',
+            'alert' => false
+        ];
+
+        if ($toEmail) {
+            Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
     
         return response()->json([
@@ -323,9 +368,23 @@ class PengajuanController extends Controller
         })->with('program')->get();
 
         foreach ($dataAnaks as $anak) {
-            Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, 'Penambahan Skor Semester Genap');
+            Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, 'Penambahan Saldo Semester Genap');
             $user = $anak->karyawan->user;
             $user->notify(new NotifAddCreditScore($anak));
+
+            $nominal = number_format($anak->program->total, 2);
+            $totalscorefix = number_format($anak->latestTransaction->final_balance, 2);
+
+            $emailData = [
+                'title' => 'Penambahan Saldo Tabungan',
+                'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka Penambahan Saldo Semester Genap. Kini tabungan $anak->nama bertambah sebesar Rp. $totalscorefix.",
+                'subject' => 'Penambahan Saldo Tabungan',
+                'alert' => false
+            ];
+
+            $toEmail = $user->email;
+
+            Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
 
         return back()->with('success', 'Transaksi per semester berhasil dibuat.');

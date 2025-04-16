@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CustomEmail;
 use App\Models\ApprovalFirst;
+use App\Models\DataAnak;
 use App\Models\Program;
 use App\Models\Transaction;
 use App\Models\User;
@@ -10,6 +12,7 @@ use App\Notifications\UpdateValidated;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
 
 class ValidatedController extends Controller
@@ -108,6 +111,8 @@ class ValidatedController extends Controller
 
         $id_anak = $request->id_anak;
 
+        $anakData = DataAnak::find($id_anak);
+
         $program = Program::where('id', $request->id_program)->first();
 
         $saldokredit = $program->total;
@@ -126,6 +131,25 @@ class ValidatedController extends Controller
         if ($request->status == 1) {
             Transaction::createTransaction($id_anak, $saldokredit, 0, $request->notes);
         }
+
+        $title = $request->status == 1 
+            ? "Persetujuan Pendaftaran Peserta Tabungan Pendidikan" 
+            : "Permohonan Revisi Form Pendaftaran Peserta Tabungan Pendidikan";
+
+        $body = $request->status == 1
+            ? "Pendaftaran peserta tabungan kamu atas nama $anakData->nama telah disetujui. Kini $anakData->nama telah memiliki saldo tabungan awal."
+            : "Mohon maaf, pengajuan pendaftaran peserta tabungan kamu atas nama $anakData->nama tidak bisa disetujui dikarenakan $request->notes, silahkan perbarui data form pengajuan anda. Untuk info lebih lanjut anda bisa menghubungi bagian Divisi Pendidikan Yayasan Persada Hati.";
+
+        $emailData = [
+            'title' => $title,
+            'body' => $body,
+            'subject' => $title,
+            'alert' => false
+        ];
+
+        $toEmail = $user->email;
+
+        Mail::to($toEmail)->queue(new CustomEmail($emailData));
 
         return response()->json([
             'success' => true,
