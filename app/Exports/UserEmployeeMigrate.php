@@ -21,13 +21,14 @@ class UserEmployeeMigrate implements FromCollection, WithHeadings, WithMapping, 
     {
         return Employee::where('isactive', true)
             ->whereDoesntHave('user', function ($query) {
-                $query->whereRaw('CAST(users.id_employee AS BIGINT) = employees.id');
+                $query->whereColumn('users.id_employee', 'employees.id'); // Ini yang disarankan
             })
-            ->with('company') // Ambil relasi perusahaan
-            ->orderBy('company_id') // Mengelompokkan berdasarkan perusahaan
-            ->orderBy('name', 'ASC') // Urutkan nama karyawan dalam perusahaan
+            ->with('company')
+            ->orderBy('company_id')
+            ->orderBy('name', 'ASC')
             ->get();
     }
+
 
     /**
      * Menentukan header kolom.
