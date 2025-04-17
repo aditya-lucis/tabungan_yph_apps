@@ -45,7 +45,22 @@
 @endsection
 @section('content')
 
-<div class="az-content-label mg-b-5">Tabungan Berjalan Yang Diajukan {{$employee->name}}</div>
+@php
+    date_default_timezone_set('Asia/Jakarta'); // Set zona waktu ke WIB
+    $hour = date('H');
+
+    if ($hour >= 5 && $hour < 11) {
+        $greeting = 'Selamat Pagi';
+    } elseif ($hour >= 11 && $hour < 15) {
+        $greeting = 'Selamat Siang';
+    } elseif ($hour >= 15 && $hour < 18) {
+        $greeting = 'Selamat Sore';
+    } else {
+        $greeting = 'Selamat Malam';
+    }
+@endphp
+
+<div class="az-content-label mg-b-5">{{ $greeting }}, {{$employee->name}}  </div>
 <br>
 <div class="az-content-breadcrumb">
     <!-- <span>tambah Pengajuan</span> -->
