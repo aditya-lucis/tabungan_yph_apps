@@ -350,6 +350,7 @@
             },
             error: function(xhr) {
                 Swal.fire("Gagal!", "Terjadi kesalahan saat mengupload file.", "error");
+                console.log(xhr.responseText); // Debugging
             }
         });
     });
