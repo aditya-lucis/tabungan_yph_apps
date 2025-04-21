@@ -117,9 +117,9 @@
                     </div>
                     <hr>
                     <!-- Tabel Saldo (Responsive) -->
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                         <table id="tablesaldo" class="table table-bordered">
-                            <thead class="thead-dark">
+                            <thead class="thead-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
                                     <th class="text-right">Saldo Awal</th>
                                     <th class="text-right">Credit</th>

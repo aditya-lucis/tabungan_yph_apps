@@ -84,7 +84,7 @@
             <div class="row grid-margin">
                 <div class="col">
                     <div class="col-12">
-                        <b>{{ $anak->nama }}</b> <a id="reqApprove" data-id="{{ $anak->id }}" class="btn btn-sm btn-outline-success custom-btn btn-rounded-3" style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">Ajukan Pencairan</a>
+                    <a id="logsavings" class="btn btn-sm btn-outline-info custom-btn btn-rounded-3" style="font-size: 14px;" data-id="{{ $anak->id }}"><b>{{ $anak->nama }}</b></a> <a id="reqApprove" data-id="{{ $anak->id }}" class="btn btn-sm btn-outline-success custom-btn btn-rounded-3" style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">Ajukan Pencairan</a>
                         <a id="edit" data-id="{{ $anak->id }}" 
                             class="btn btn-outline-warning custom-btn btn-rounded-3 position-absolute" 
                             style="top: 10px; right: 10px; padding: 8px 12px; font-size: 16px;">
@@ -100,20 +100,16 @@
                                 <th class="text-align: right;">Saldo Berjalan</th>
                                 <th class="text-align: right;">Debit</th>
                                 <th class="text-align: right;">Saldo Akhir</th>
-                                <th>Notes</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($anak->transaction as $key => $tabungan)
                                 <tr>
-                                    <td class="text-align: right;">{{ number_format($tabungan->previous_balance, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($tabungan->credit, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($tabungan->running_balance, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($tabungan->debit, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($tabungan->final_balance, 2) }}</td>
-                                    <td>{{ $tabungan->notes }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->previous_balance, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->credit, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->running_balance, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->debit, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->final_balance, 2) }}</td>
                                 </tr>
-                                @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -238,9 +234,9 @@
                     <br>
                     <h5 class="modal-title bg-success text-white p-2 rounded" id="editModalLabel">Riwayat Pencairan</h5>
                     <br>
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                             <table id="tablelog" class="table table-bordered">
-                                <thead>
+                                <thead style="position: sticky; top: 0; z-index: 1;">
                                     <tr>
                                         <th>No.</th>
                                         <th>Tanggal Pengajuan</th>
@@ -259,6 +255,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal log savings -->
+ <div id="ModalLogSavings" class="modal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content modal-content-demo">
+            <div class="modal-content modal-content-demo">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Detail Riwayat Tabungan <span id="childname"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table id="tablogsavings" class="table table-bordered">
+                            <thead class="thead-dark" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <td class="text-right">Saldo Awal</td>
+                                    <td class="text-right">Credit</td>
+                                    <td class="text-right">Saldo Berjalan</td>
+                                    <td class="text-right">Debet</td>
+                                    <td class="text-right">Saldo Akhir</td>
+                                    <td>Notes</td>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>
 
 @endsection
 
@@ -446,7 +475,44 @@ $(document).ready(function(){
         $('#id_anak').val("");
     });
 
-    // Klik tombol req approve
+    // log savings
+    $('body').on('click', '#logsavings', function () {
+        var id = $(this).data('id');
+        $.ajax({
+            url: `/savings/${id}/log`,
+            type: "GET",
+            success: function (response) {
+                $('#ModalLogSavings').modal('show');
+                $('#childname').text(response[0].nama);
+                
+                 // Bersihkan tabel saldo sebelum menambahkan data baru
+                 $('#tablogsavings tbody').empty();
+
+                 if (response[1].length > 0) {
+                    $.each(response[1], function (index, transaction) {
+                        $('#tablogsavings tbody').append(`
+                            <tr>
+                                <td class="text-right">Rp. ${transaction.previous_balance.toLocaleString()}</td>
+                                <td class="text-right">Rp. ${transaction.credit.toLocaleString()}</td>
+                                <td class="text-right">Rp. ${transaction.running_balance.toLocaleString()}</td>
+                                <td class="text-right">Rp. ${transaction.debit.toLocaleString()}</td>
+                                <td class="text-right">Rp. ${transaction.final_balance.toLocaleString()}</td>
+                                <td>${transaction.notes}</td>
+                            </tr>
+                        `)
+                    })
+                 }else{
+                    $('#tablogsavings tbody').append(`
+                        <tr>
+                            <td colspan="6" class="text-center">Tidak ada transaksi</td>
+                        </tr>
+                    `);
+                 }
+            }
+        })
+    })
+
+    // Klik pengajuan pencairan
     $('body').on('click', '#reqApprove', function() {
         var reqId = $(this).data('id');
 
@@ -462,6 +528,7 @@ $(document).ready(function(){
         });
     });
 
+    // post pengajuan pencairan
     $('body').on('click', '#saveChangesBtn', function() {
         var formData = new FormData();
         formData.append('id_anak', $('#id_anak').val());
@@ -508,7 +575,7 @@ $(document).ready(function(){
         });
     });
 
-    
+    // edit data anak
     $(document).on("submit", "#form-edit", function (e) {
         e.preventDefault(); // Mencegah reload halaman
 
@@ -518,8 +585,8 @@ $(document).ready(function(){
             url: "{{ route('pengajuan.update') }}", // Route Laravel
             type: "POST",
             data: formData,
-            processData: false,  // Jangan ubah data
-            contentType: false,  // Jangan set header secara otomatis
+            processData: false,  
+            contentType: false,  
             success: function (response) {
                 if (response.success) {
                     Swal.fire({

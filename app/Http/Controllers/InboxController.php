@@ -60,7 +60,7 @@ class InboxController extends Controller
     }
 
     public function edit($id) {
-        $query = ReqApproval::with(['anak.karyawan.company','anak', 'anak.karyawan', 'anak.program', 'anak.transaction', 'user'])->find($id);
+        $query = ReqApproval::with(['anak.karyawan.company','anak', 'anak.karyawan', 'anak.program', 'anak.transaction', 'anak.latestTransaction', 'user'])->find($id);
 
         if (!$query) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);

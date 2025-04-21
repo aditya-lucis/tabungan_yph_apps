@@ -224,7 +224,7 @@ class PengajuanController extends Controller
     }
 
     public function get($id) {
-        $anakData = DataAnak::with(['transaction', 'reqpproval', 'program'])->find($id);
+        $anakData = DataAnak::with(['transaction', 'reqpproval', 'program', 'latestTransaction'])->find($id);
         
         if (!$anakData) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);

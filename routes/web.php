@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function (){
     Route::post('/import-user-employee', [UserController::class, 'importUserEmployee'])->name('importUserEmployee');
     Route::post('/employee/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('employee.toggleStatus');
     Route::get('/employee/{id}/get', [EmployeeController::class, 'getidkaryawn']);
+    Route::get('/savings/{id}/log', [EmployeeController::class, 'logsavings'])->name('logsavings');
     Route::post('/createauth/employee', [EmployeeController::class, 'createauth'])->name('authemployee');
     Route::post('/import-excel', [EmployeeController::class, 'importexcel'])->name('import.excel');
     Route::get('/pengajuan/{id}', [PengajuanController::class, 'add']);

@@ -171,9 +171,9 @@
                 <br>
                 <h5 class="modal-title bg-success text-white p-2 rounded" id="editModalLabel">Detail Data Tabungan</h5>
                 <br>
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                     <table id="tablesaldo" class="table table-bordered">
-                        <thead class="thead-dark">
+                        <thead class="thead-dark" style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th class="text-right">Saldo Awal</th>
                                 <th class="text-right">Credit</th>
@@ -189,9 +189,9 @@
                 <br>
                 <h5 class="modal-title bg-success text-white p-2 rounded" id="editModalLabel">Riwayat Pencairan</h5>
                 <br>
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                     <table id="tablelog" class="table table-bordered">
-                        <thead>
+                        <thead style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th>No.</th>
                                 <th>Tanggal Pengajuan</th>

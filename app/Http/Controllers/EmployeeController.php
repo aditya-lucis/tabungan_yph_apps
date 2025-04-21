@@ -7,6 +7,7 @@ use App\Imports\EmployeeImports;
 use App\Models\Company;
 use App\Models\DataAnak;
 use App\Models\Employee;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -227,5 +228,13 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Gagal mengimport data.'], 500);
         }
+    }
+
+    public function logsavings($id)
+    {
+        $anak = DataAnak::find($id);
+        $query = Transaction::where('id_anak', $id)->orderBy('created_at', 'asc')->get();
+
+        return response()->json([$anak, $query]);
     }
 }
