@@ -104,11 +104,11 @@
                         </thead>
                         <tbody>
                                 <tr>
-                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->previous_balance, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->credit, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->running_balance, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->debit, 2) }}</td>
-                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->final_balance, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->previous_balance ?? 0, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->credit ?? 0, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->running_balance ?? 0, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->debit ?? 0, 2) }}</td>
+                                    <td class="text-align: right;">{{ number_format($anak->latestTransaction->final_balance ?? 0, 2) }}</td>
                                 </tr>
                         </tbody>
                     </table>
