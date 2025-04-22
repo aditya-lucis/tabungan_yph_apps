@@ -381,6 +381,11 @@ $(document).ready(function () {
 
                     // Periksa apakah ada transaksi
                     if (response.anak.transaction.length > 0) {
+
+                        response.anak.transaction.sort(function(a, b) {
+                            return new Date(a.created_at) - new Date(b.created_at);
+                        });
+
                         $.each(response.anak.transaction, function (index, transaction) {
                             $('#tablesaldo tbody').append(`
                                 <tr>

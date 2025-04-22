@@ -441,6 +441,11 @@
                 $('#tablesaldo tbody').empty();
 
                 if (response.transaction.length > 0) {
+
+                    response.transaction.sort(function(a, b) {
+                        return new Date(a.created_at) - new Date(b.created_at);
+                    });
+
                     $.each(response.transaction, function (index, transaction) {
                         $('#tablesaldo tbody').append(`
                             <tr>
@@ -466,6 +471,12 @@
                 let statusText = ''
 
                 if (response.reqpproval.length > 0) {
+
+                    // Urutkan berdasarkan created_at desc
+                    response.reqpproval.sort(function(a, b) {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
                     $.each(response.reqpproval, function (index, reqpproval) {
                         let typeText = '';
                         let statusText = '';

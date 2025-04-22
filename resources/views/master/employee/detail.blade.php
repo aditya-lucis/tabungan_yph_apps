@@ -236,7 +236,7 @@
                     <br>
                         <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                             <table id="tablelog" class="table table-bordered">
-                                <thead style="position: sticky; top: 0; z-index: 1;">
+                                <thead class="thead-dark" style="position: sticky; top: 0; z-index: 1;">
                                     <tr>
                                         <th>No.</th>
                                         <th>Tanggal Pengajuan</th>
@@ -360,6 +360,12 @@ $(document).ready(function(){
                 $('#tablelog tbody').empty();
                 // Periksa apakah ada transaksi
                 if (response.reqpproval.length > 0) {
+
+                    // Urutkan berdasarkan created_at desc
+                    response.reqpproval.sort(function(a, b) {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
                     $.each(response.reqpproval, function (index, reqpproval){
 
                         let statusText = '';
