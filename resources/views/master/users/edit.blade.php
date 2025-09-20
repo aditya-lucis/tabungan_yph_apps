@@ -52,7 +52,7 @@
                                 <input type="email" name="email" id="email" class="form-control" value="{{$User->email}}" required>
                             </div>
                             <div class="form-group mb-2">
-                                <label class="az-content-label tx-11 tx-medium tx-gray-600">Email</label>
+                                <label class="az-content-label tx-11 tx-medium tx-gray-600">Phone</label>
                                 <input type="text" name="phone" id="phone" class="form-control" value="{{$User->phone}}" required>
                             </div>
                             <button class="btn btn-az-primary btn-block" id="updateprofile">Update</button>
