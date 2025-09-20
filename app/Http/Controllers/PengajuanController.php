@@ -236,6 +236,11 @@ class PengajuanController extends Controller
     
     public function updatebalance(Request $request, string $id){
         $query = DataAnak::find($id);
+        $now = Carbon::now();
+        $tahun = $now->year;
+        $bulan = $now->month;
+        $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
+        $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
 
         $user = $query->karyawan->user;
     
@@ -255,7 +260,7 @@ class PengajuanController extends Controller
             ], 400);
         }
     
-        Transaction::createTransaction($query->id, $request->nominaltotal, 0, $request->notesdescript);
+        Transaction::createTransaction($query->id, $request->nominaltotal, 0, $keteranganSemester);
 
         if ($user) {
             $user->notify(new NotifAddCreditScore($query));
@@ -268,7 +273,7 @@ class PengajuanController extends Controller
 
         $emailData = [
             'title' => 'Penambahan Saldo Tabungan',
-            'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka $request->notesdescript. Kini tabungan $query->nama bertambah sebesar Rp. $totalscorefix.",
+            'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka $keteranganSemester. Kini tabungan $query->nama bertambah sebesar Rp. $totalscorefix.",
             'subject' => 'Penambahan Saldo Tabungan',
             'alert' => false
         ];
