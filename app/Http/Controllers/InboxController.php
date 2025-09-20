@@ -72,9 +72,7 @@ class InboxController extends Controller
     public function update(Request $request, $id)
     {
         $query = ReqApproval::find($id);
-
         $anakData = DataAnak::find($request->id_anak);
-
         $user = Auth::user();
 
         $finalBalance = $anakData->latestTransaction->final_balance;

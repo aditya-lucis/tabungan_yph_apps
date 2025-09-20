@@ -195,7 +195,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="form-label">Note:</label>
-                                    <input type="text" name="note_input" id="note_input" class="form-control">
+                                    <input type="text" name="note_input" id="note_input" class="form-control" placeholder="Pengajuan Pencairan Tahap: ">
                                 </div>
                             </div>
                         </div>

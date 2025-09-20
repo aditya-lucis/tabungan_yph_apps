@@ -2,28 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\AnakFormatExport;
-use App\Exports\SaldoAnakFormatExport;
-use App\Imports\DataAnakImport;
-use App\Imports\DataSaldoAnakImport;
-use App\Mail\CustomEmail;
-use App\Models\ApprovalFirst;
+use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Program;
 use App\Models\DataAnak;
 use App\Models\Employee;
-use App\Models\Program;
+use App\Mail\CustomEmail;
 use App\Models\ReqApproval;
-use App\Models\TermAndCondition;
 use App\Models\Transaction;
-use App\Models\User;
-use App\Notifications\FirstApproval;
-use App\Notifications\NotifAddCreditScore;
-use App\Notifications\NotifReqApprovalCreated;
 use Illuminate\Http\Request;
+use App\Models\ApprovalFirst;
+use App\Imports\DataAnakImport;
+use App\Models\TermAndCondition;
+use App\Exports\AnakFormatExport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\DataSaldoAnakImport;
+use App\Notifications\FirstApproval;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SaldoAnakFormatExport;
 use Yajra\DataTables\Facades\DataTables;
+use App\Notifications\NotifAddCreditScore;
+use App\Notifications\NotifReqApprovalCreated;
 
 class PengajuanController extends Controller
 {
@@ -363,12 +364,19 @@ class PengajuanController extends Controller
 
     public function generate(){
         $user = "";
+        $now = Carbon::now();
+        $tahun = $now->year;
+        $bulan = $now->month;
+
+        $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
+        $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
+
         $dataAnaks = DataAnak::whereHas('karyawan', function ($q) {
             $q->where('isactive', true);
         })->with('program')->get();
 
         foreach ($dataAnaks as $anak) {
-            Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, 'Penambahan Saldo Semester Genap');
+            Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, $keteranganSemester);
             $user = $anak->karyawan->user;
             $user->notify(new NotifAddCreditScore($anak));
 
@@ -377,7 +385,7 @@ class PengajuanController extends Controller
 
             $emailData = [
                 'title' => 'Penambahan Saldo Tabungan',
-                'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka Penambahan Saldo Semester Genap. Kini tabungan $anak->nama bertambah sebesar Rp. $totalscorefix.",
+                'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka Penambahan Saldo Semester $semester. Kini tabungan $anak->nama bertambah sebesar Rp. $totalscorefix.",
                 'subject' => 'Penambahan Saldo Tabungan',
                 'alert' => false
             ];

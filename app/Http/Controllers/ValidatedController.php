@@ -105,16 +105,16 @@ class ValidatedController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $now = Carbon::now();
+        $tahun = $now->year;
+        $bulan = $now->month;
+        $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
+        $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
         $query = ApprovalFirst::find($id);
-
         $user = User::where('id_employee', $request->id_karyawan)->first();
-
         $id_anak = $request->id_anak;
-
         $anakData = DataAnak::find($id_anak);
-
         $program = Program::where('id', $request->id_program)->first();
-
         $saldokredit = $program->total;
 
         $validate = $request->validate([
@@ -129,7 +129,7 @@ class ValidatedController extends Controller
         }
 
         if ($request->status == 1) {
-            Transaction::createTransaction($id_anak, $saldokredit, 0, $request->notes);
+            Transaction::createTransaction($id_anak, $saldokredit, 0, $keteranganSemester);
         }
 
         $title = $request->status == 1 
