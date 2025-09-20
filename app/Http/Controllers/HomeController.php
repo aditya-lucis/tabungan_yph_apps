@@ -21,7 +21,7 @@ class HomeController extends Controller
                     foreach ($anak->transaction as $trx) {
                         $tahun = \Carbon\Carbon::parse($trx->created_at)->year;
                         $bulan = \Carbon\Carbon::parse($trx->created_at)->month;
-                        $semester = $bulan <= 6 ? 'Semester 1' : 'Semester 2';
+                        $semester = $bulan <= 6 ? 'Semester Genap' : 'Semester Ganjil';
         
                         $key = $program->level . '-' . $tahun;
         
@@ -38,7 +38,7 @@ class HomeController extends Controller
         
                         $saldo = $trx->credit - $trx->debit;
         
-                        if ($semester === 'Semester 1') {
+                        if ($semester === 'Semester Genap') {
                             $perJenjang[$key]['semester_1'] += $saldo;
                         } else {
                             $perJenjang[$key]['semester_2'] += $saldo;
@@ -67,8 +67,8 @@ class HomeController extends Controller
                         programs.level AS program_level,
                         EXTRACT(YEAR FROM transactions.created_at) AS tahun,
                         CASE 
-                            WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 THEN 'Semester 1'
-                            ELSE 'Semester 2'
+                            WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 THEN 'Semester Genap'
+                            ELSE 'Semester Ganjil'
                         END AS semester,
                         SUM(transactions.credit) AS total_credit,
                         SUM(transactions.debit) AS total_debit,
@@ -83,7 +83,7 @@ class HomeController extends Controller
                         'companies.name',
                         'programs.level',
                         DB::raw('EXTRACT(YEAR FROM transactions.created_at)'),
-                        DB::raw("CASE WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 THEN 'Semester 1' ELSE 'Semester 2' END")
+                        DB::raw("CASE WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 THEN 'Semester Genap' ELSE 'Semester Ganjil' END")
                     )
                     ->orderBy('companies.name', 'ASC')
                     ->get();

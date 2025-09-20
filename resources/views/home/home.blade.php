@@ -31,8 +31,8 @@
                 <th>Jenjang Pendidikan</th>
                 <th>Tahun</th>
                 <th>Jumlah Anak</th>
-                <th>Semester 1</th>
-                <th>Semester 2</th>
+                <th>Semester Genap</th>
+                <th>Semester Ganjil</th>
                 <th>Total Per Tahun</th>
             </tr>
         </thead>
