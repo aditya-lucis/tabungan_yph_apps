@@ -300,6 +300,7 @@ class PengajuanController extends Controller
         // Update data anak
         $query->nama = $request->namaanak;
         $query->nama_sekolah = $request->namasekolah;
+        $query->id_program = $request->id_program;
         $query->tempat_lahir = $request->tempatlahir;
         $query->tgl_lahir = date('Y-m-d', strtotime($request->tgllahir));
     

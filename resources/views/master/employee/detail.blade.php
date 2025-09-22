@@ -181,8 +181,13 @@
                     <br>
                     <div class="row row-xs">
                         <div class="col-md-6">
-                            <label for="namasekolah">Nama Sekolah</label>
-                            <input type="text" name="namasekolah" id="namasekolah" class="form-control" placeholder="Nama Sekolah">
+                            <label for="jenjang">Jenjang Pendidikan</label>
+                            <select name="id_program" id="id_program" class="form-control">
+                                <option value="">Pilih Jenjang Pendidikan</option>
+                                @foreach($program as $prog)
+                                    <option value="{{ $prog->id }}">{{ $prog->level }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label>FC KTP Karyawan</label>
@@ -197,8 +202,8 @@
                     <br>
                     <div class="row row-xs">
                         <div class="col-md-6">
-                            <label for="tempatlahir">Tempat Lahir</label>
-                            <input type="text" name="tempatlahir" id="tempatlahir" class="form-control" placeholder="Tempat Lahir">
+                            <label for="namasekolah">Nama Sekolah</label>
+                            <input type="text" name="namasekolah" id="namasekolah" class="form-control" placeholder="Nama Sekolah">
                         </div>
                         <div class="col-md-6">
                             <label>FC Raport</label>
@@ -213,13 +218,8 @@
                     <br>
                     <div class="row row-xs">
                         <div class="col-md-6">
-                            <label for="tgllahir">Tanggal Lahir</label>
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <i class="typcn typcn-calendar-outline tx-24 lh--9 op-6"></i>
-                                </div>
-                                <input type="text" name="tgllahir" id="tgllahir" class="form-control fc-datepicker" placeholder="Tanggal Lahir">
-                            </div>
+                            <label for="tempatlahir">Tempat Lahir</label>
+                            <input type="text" name="tempatlahir" id="tempatlahir" class="form-control" placeholder="Tempat Lahir">
                         </div>
                         <div class="col-md-6">
                             <label>FC Rek Sekolah</label>
@@ -228,6 +228,18 @@
                                 <a href="#" id="download_fc_rek_skolah" class="btn btn-sm btn-success col-md-3" target="_blank" style="display: none;">
                                     <i class="typcn typcn-download"></i>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row row-xs">
+                        <div class="col-md-6">
+                            <label for="tgllahir">Tanggal Lahir</label>
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">
+                                    <i class="typcn typcn-calendar-outline tx-24 lh--9 op-6"></i>
+                                </div>
+                                <input type="text" name="tgllahir" id="tgllahir" class="form-control fc-datepicker" placeholder="Tanggal Lahir">
                             </div>
                         </div>
                     </div>
@@ -328,6 +340,7 @@ $(document).ready(function(){
                 $('#namaanak').val(response.nama)
                 $('#namasekolah').val(response.nama_sekolah)
                 $('#tempatlahir').val(response.tempat_lahir)
+                $('#id_program').val(response.id_program);
                 // Format ulang tanggal sebelum ditampilkan di datepicker
                 let tgl_lahir = new Date(response.tgl_lahir);
                 let tgl_lahirfix = $.datepicker.formatDate('mm/dd/yy', tgl_lahir);

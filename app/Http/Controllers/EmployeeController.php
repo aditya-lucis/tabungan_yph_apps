@@ -7,6 +7,7 @@ use App\Imports\EmployeeImports;
 use App\Models\Company;
 use App\Models\DataAnak;
 use App\Models\Employee;
+use App\Models\Program;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -115,8 +116,9 @@ class EmployeeController extends Controller
     public function show($id)
     {
         $employee = Employee::findOrFail($id);
+        $program = Program::all();
         $dataanak = DataAnak::where('id_karyawan', $id)->get();
-        return view('master.employee.detail', compact('employee', 'dataanak'));
+        return view('master.employee.detail', compact('employee', 'dataanak', 'program'));
     }
 
     public function toggleStatus($id)
