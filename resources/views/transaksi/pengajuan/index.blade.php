@@ -552,9 +552,20 @@
             url: "/get/pengajuan/" + id,
             type: 'GET',
             success: function (response){
-                $('#id_anak').val(id);    
-                $('#nominal_input').val(response.program.total.toLocaleString());    
-                $('#namechild').text(response.nama);    
+                $('#id_anak').val(id)
+                $('#nominal_input').val(response.program.total.toLocaleString())  
+                $('#namechild').text(response.nama)
+                
+                var today = new Date()
+                var month = today.getMonth() + 1
+                var year = today.getFullYear()
+                var semester = (month >= 1 && month <= 6)  ? "Genap" : "Ganjil"
+                var keteranganSemester = `Penambahan Saldo Semester ${semester} ${year}`
+                $('#note_input').val(keteranganSemester)
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", status, error);
+                console.log("Response Text:", xhr.responseText);
             }
         })
 
