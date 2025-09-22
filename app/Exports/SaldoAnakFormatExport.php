@@ -12,7 +12,11 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 class SaldoAnakFormatExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths
 {
     public function array() : array {
-        $childs = DataAnak::with(['karyawan', 'program'])->get();
+        $childs = DataAnak::with(['karyawan', 'program'])
+        ->whereHas('karyawan', function ($query) {
+            $query->where('isactive', 1);
+        })
+        ->get();
 
         // Format data Nama Orangtua, Company, dan Nama Anak
         $data = $childs->map(function ($child) {
