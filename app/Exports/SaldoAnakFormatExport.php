@@ -14,7 +14,7 @@ class SaldoAnakFormatExport implements FromArray, WithHeadings, WithStyles, With
     public function array() : array {
         $childs = DataAnak::with(['karyawan', 'program'])
         ->whereHas('karyawan', function ($query) {
-            $query->where('isactive', 1);
+            $query->where('isactive', true);
         })
         ->get();
 
