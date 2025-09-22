@@ -325,6 +325,10 @@ $(document).ready(function(){
     });
 });
 
+    $('#id_program').on('change', function() {
+        $('#namasekolah').val('');
+    });
+
     $('body').on('click', '#btn-add', function() {
         var employeeId = $(this).data('id');
         window.location.href = `/pengajuan/${employeeId}`;
