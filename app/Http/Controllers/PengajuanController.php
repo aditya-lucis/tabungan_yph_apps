@@ -72,6 +72,12 @@ class PengajuanController extends Controller
                     continue;
                 }
 
+                 // Convert tgl_lahir ke format MySQL (Y-m-d)
+                $tglLahir = null;
+                if (!empty($anak['tgl_lahir'])) {
+                    $tglLahir = \Carbon\Carbon::createFromFormat('m/d/Y', $anak['tgl_lahir'])->format('Y-m-d');
+                }
+
                 $suratSekolahName = null;
                 $fcRaportName = null;
                 $fcRekSekolahName = null;
@@ -101,7 +107,7 @@ class PengajuanController extends Controller
                     'id_program'     => $anak['id_program'],
                     'nama_sekolah'   => $anak['nama_sekolah'],
                     'tempat_lahir'   => $anak['tempat_lahir'],
-                    'tgl_lahir'      => $anak['tgl_lahir'],
+                    'tgl_lahir'      => $tglLahir,
                     'fc_ktp'         => $fcKtpName, 
                     'surat_sekolah'  => $suratSekolahName,
                     'fc_raport'      => $fcRaportName,
