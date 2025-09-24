@@ -12,8 +12,6 @@ use App\Http\Controllers\InboxController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\ValidatedController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,46 +19,67 @@ use Illuminate\Support\Facades\Route;
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| Here is where you can register web routes for your application.
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
+Route::get('/login', [AuthController::class, 'index'])
+    ->name('login')
+    ->middleware('guest');
 Route::post('/login', [AuthController::class, 'store']);
 
-Route::middleware(['auth'])->group(function (){
+Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', [HomeController::class, 'index'])->name('homeindex');
+    Route::get('/', [HomeController::class, 'index']) ->middleware('check.employee')->name('homeindex');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // =======================
+    // Tabungan Inbox
+    // =======================
     Route::get('/tabungan/inbox', [InboxController::class, 'index'])->name('tabungan.inbox');
     Route::get('/tabungan/inbox/export', [InboxController::class, 'export'])->name('approval.export');
     Route::get('/tabungan/inbox/{id}', [InboxController::class, 'edit'])->name('tabungan.inbox.edit');
     Route::put('/tabungan/inbox/update/{id}', [InboxController::class, 'update'])->name('tabungan.inbox.update');
 
+    // =======================
+    // Company / Program / Users
+    // =======================
     Route::resource('/company', CompanyController::class);
     Route::resource('/program', ProgramController::class);
-    Route::resource('/employee', EmployeeController::class);
     Route::resource('/users', UserController::class);
+
     Route::get('/get-format-employee', [EmployeeController::class, 'formatDataEmployee'])->name('formatDataEmployee');
     Route::post('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggleStatus');
     Route::put('/users/{id}/update-profile', [UserController::class, 'updateprofile'])->name('users.update-profile');
     Route::put('/users/{id}/update-password', [UserController::class, 'updatepassword'])->name('users.update-password');
     Route::get('/export-user-employee', [UserController::class, 'exportUserEmployee']);
     Route::post('/import-user-employee', [UserController::class, 'importUserEmployee'])->name('importUserEmployee');
+
+    // =======================
+    // Employee
+    // =======================
+    Route::resource('/employee', EmployeeController::class)->except(['show', 'index']);
+     // employee index → dibatasi
+    Route::get('/employee', [EmployeeController::class, 'index'])
+        ->middleware('check.employee')
+        ->name('employee.index');
+    Route::get('/employee/{employee}', [EmployeeController::class, 'show'])
+        ->middleware('check.employee') // hanya show yang dibatasi
+        ->name('employee.show');
+
     Route::post('/employee/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('employee.toggleStatus');
     Route::get('/employee/{id}/get', [EmployeeController::class, 'getidkaryawn']);
     Route::get('/savings/{id}/log', [EmployeeController::class, 'logsavings'])->name('logsavings');
     Route::post('/createauth/employee', [EmployeeController::class, 'createauth'])->name('authemployee');
     Route::post('/import-excel', [EmployeeController::class, 'importexcel'])->name('import.excel');
-    Route::get('/pengajuan/{id}', [PengajuanController::class, 'add']);
+
+    // =======================
+    // Pengajuan
+    // =======================
+    Route::get('/pengajuan/{id}', [PengajuanController::class, 'add'])
+        ->middleware('check.employee'); // hanya detail pengajuan yang dibatasi
+
     Route::get('/get/pengajuan/{id}', [PengajuanController::class, 'get']);
     Route::put('/get/pengajuan/{id}', [PengajuanController::class, 'updatebalance']);
     Route::get('/reqapproval/{id}', [PengajuanController::class, 'reqapproval']);
@@ -73,13 +92,28 @@ Route::middleware(['auth'])->group(function (){
     Route::get('/get-saldo-format', [PengajuanController::class, 'exportSaldoAnakFormat'])->name('exportSaldoAnakFormat');
     Route::post('/post-anak-format', [PengajuanController::class, 'importAnak'])->name('importAnak');
     Route::post('/post-saldo-anak-format', [PengajuanController::class, 'importSaldoAnak'])->name('importSaldoAnak');
+
+    // =======================
+    // Term & Condition
+    // =======================
     Route::get('/pengajuan/termandcondition/{id}', [TermAndConditionController::class, 'request'])->name('sk-route');
     Route::get('/termandcondition', [TermAndConditionController::class, 'add'])->name('sk-add');
     Route::put('/pengajuan/termandcondition', [TermAndConditionController::class, 'store'])->name('termandcondition.store');
+
+    // =======================
+    // Validasi
+    // =======================
     Route::resource('/validate', ValidatedController::class);
+
+    // =======================
+    // Notifications
+    // =======================
     Route::get('/notifications/list', [NotificationController::class, 'index']);
     Route::post('/notifications/read/{id}', [NotificationController::class, 'read']);
 
+    // =======================
+    // Email Configuration
+    // =======================
     Route::get('/email/configuration', [EmailController::class, 'index'])->name('email.index');
     Route::put('/email/configuration', [EmailController::class, 'update'])->name('email-update');
 });
