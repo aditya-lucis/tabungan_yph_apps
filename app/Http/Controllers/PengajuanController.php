@@ -139,7 +139,7 @@ class PengajuanController extends Controller
                     'alert' => true
                 ];
 
-                Mail::to($toEmail)->queue(new CustomEmail($emailData));
+                // Mail::to($toEmail)->queue(new CustomEmail($emailData));
 
                 $admins = User::where('role', 'adm')->get();
                 foreach ($admins as $admin) {
@@ -219,9 +219,9 @@ class PengajuanController extends Controller
 
         $toEmail = $anakData->karyawan->user->email;
 
-        if ($toEmail) {
-            Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        }
+        // if ($toEmail) {
+        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
+        // }
     
         if ($anakData) {
             return response()->json(['success' => true, 'message' => "Form yang lengkap akan memudahkan pencairan dana. Jadi lengkapi form anda untuk kemudahan pencairan."]);
@@ -284,9 +284,9 @@ class PengajuanController extends Controller
             'alert' => false
         ];
 
-        if ($toEmail) {
-            Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        }
+        // if ($toEmail) {
+        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
+        // }
     
         return response()->json([
             'success' => true,
@@ -402,9 +402,9 @@ class PengajuanController extends Controller
                 'alert' => false
             ];
 
-            $toEmail = $user->email;
+            // $toEmail = $user->email;
 
-            Mail::to($toEmail)->queue(new CustomEmail($emailData));
+            // Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
 
         return back()->with('success', 'Transaksi per semester berhasil dibuat.');

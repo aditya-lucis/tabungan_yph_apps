@@ -127,9 +127,9 @@ class InboxController extends Controller
 
         $toEmail = $pengaju->email;
 
-        if ($toEmail) {
-            Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        }
+        // if ($toEmail) {
+        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
+        // }
 
         return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui']);
     }

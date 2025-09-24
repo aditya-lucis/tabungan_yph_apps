@@ -147,9 +147,9 @@ class ValidatedController extends Controller
             'alert' => false
         ];
 
-        $toEmail = $user->email;
+        // $toEmail = $user->email;
 
-        Mail::to($toEmail)->queue(new CustomEmail($emailData));
+        // Mail::to($toEmail)->queue(new CustomEmail($emailData));
 
         return response()->json([
             'success' => true,
