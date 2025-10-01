@@ -157,29 +157,43 @@
             </thead>
             <tbody>
             @php
+
+                $groupedYearly = $yearlyData->groupBy('name')->map(function ($items) {
+                    return $items->groupBy('level')->map(function ($subItems) {
+                        return $subItems->sortBy('tahun');
+                    });
+                });
+
                 $Namecompany = '';
                 $allCredit = 0;
                 $allDebit = 0;
             @endphp
-            @foreach($yearlyData as $data)
-                @php
-                    $isSameName = $data->name == $Namecompany;
-                @endphp
+            @foreach($groupedYearly as $companyName => $programs)
                 <tr>
-                    <td class="{{ $isSameName ? 'no-border-top' : '' }}">
-                        {{ !$isSameName ? $data->name : '' }}
+                    <td rowspan="{{ $programs->flatten()->count() }}">
+                        <b>{{ $companyName }}</b>
                     </td>
-                    <td>{{ $data->level }}</td>
-                    <td>{{ $data->tahun }}</td>
-                    <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
-                </tr>
-                @php
-                    $Namecompany = $data->name;
-                    $allCredit += $data->total_credit;
-                    $allDebit += $data->total_debit;
-                @endphp
+                    @php $firstProgram = true; @endphp
+
+                    @foreach($programs as $level => $records)
+                        @foreach($records as $record)
+                            @if(!$firstProgram)
+                                <tr>
+                            @endif
+
+                            <td>{{ $level }}</td>
+                            <td>{{ $record->tahun }}</td>
+                            <td>Rp {{ number_format($record->total_credit, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($record->total_debit, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($record->saldo_akhir, 0, ',', '.') }}</td>
+                            </tr>
+                            @php
+                                $allCredit += $record->total_credit;
+                                $allDebit += $record->total_debit;
+                                $firstProgram = false;
+                            @endphp
+                        @endforeach
+                    @endforeach
             @endforeach
             <tr>
                 <td colspan="2"></td>
