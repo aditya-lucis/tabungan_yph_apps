@@ -173,7 +173,7 @@
                     <td>{{ $data->tahun }}</td>
                     <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
                     <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($data->->saldo_akhir, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
                 </tr>
                 @php
                     $Namecompany = $data->name;
