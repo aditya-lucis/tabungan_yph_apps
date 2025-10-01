@@ -73,7 +73,13 @@ class HomeController extends Controller
                         END AS semester,
                         SUM(transactions.credit) AS total_credit,
                         SUM(transactions.debit) AS total_debit,
-                        (SUM(transactions.credit) - SUM(transactions.debit)) AS saldo_akhir
+                         SUM(SUM(transactions.credit) - SUM(transactions.debit)) 
+                            OVER (
+                                PARTITION BY companies.id, programs.level
+                                ORDER BY EXTRACT(YEAR FROM transactions.created_at),
+                                        CASE WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 THEN 1 ELSE 2 END
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                            ) AS saldo_akhir
                     ")
                     ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
                     ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
