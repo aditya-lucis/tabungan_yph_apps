@@ -40,7 +40,8 @@
             @php
                 $totalSemester1 = 0;
                 $totalSemester2 = 0;
-                $totalTahunan = 0;
+                $totalCredit = 0;
+                $totalDebit = 0;
             @endphp
             @foreach ($data as $row)
                 <tr>
@@ -49,19 +50,18 @@
                     <td>{{ $row['jumlah_anak'] }}</td>
                     <td>Rp {{ number_format($row['semester_1'], 2, ',', '.') }}</td>
                     <td>Rp {{ number_format($row['semester_2'], 2, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row['total'], 2, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row['semester_1'] + $row['semester_2'], 2, ',', '.') }}</td>
                 </tr>
                 @php
                     $totalSemester1 += $row['semester_1'];
                     $totalSemester2 += $row['semester_2'];
-                    $totalTahunan += $row['total'];
                 @endphp
             @endforeach
             <tr>
                 <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
                 <td><strong>Rp {{ number_format($totalSemester1, 2, ',', '.') }}</strong></td>
                 <td><strong>Rp {{ number_format($totalSemester2, 2, ',', '.') }}</strong></td>
-                <td><strong>Rp {{ number_format($totalTahunan, 2, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalSemester1 + $totalSemester2, 2, ',', '.') }}</strong></td>
             </tr>
         </tbody>
     </table>
@@ -74,7 +74,6 @@
 
         $totalCredit = 0;
         $totalDebit = 0;
-        $totalLast = 0;
     @endphp
 
     <div class="table-card table-responsive">
@@ -117,7 +116,7 @@
                                 <td>{{ $data->semester }}</td>
                                 <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
+                                <td>Rp {{ number_format($data->total_credit - $data->total_debit, 0, ',', '.') }}</td>
                             </tr>
 
                             @php
@@ -127,7 +126,6 @@
 
                                 $totalCredit += $data->total_credit;
                                 $totalDebit += $data->total_debit;
-                                $totalLast += $data->saldo_akhir;
                             @endphp
                         @endforeach
                     @endforeach
@@ -137,7 +135,7 @@
                     <td><b>TOTAL</b></td>
                     <td><b>Rp {{ number_format($totalCredit, 2, ',', '.') }}</b></td>
                     <td><b>Rp {{ number_format($totalDebit, 2, ',', '.') }}</b></td>
-                    <td><b>Rp {{ number_format($totalLast, 2, ',', '.') }}</b></td>
+                    <td><b>Rp {{ number_format($totalCredit - $totalDebit, 2, ',', '.') }}</b></td>
                 </tr>
             </tbody>
         </table>
@@ -162,7 +160,6 @@
                 $Namecompany = '';
                 $allCredit = 0;
                 $allDebit = 0;
-                $allLast = 0;
             @endphp
             @foreach($yearlyData as $data)
                 @php
@@ -176,13 +173,12 @@
                     <td>{{ $data->tahun }}</td>
                     <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
                     <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($data->total_credit - $data->total_debit, 0, ',', '.') }}</td>
                 </tr>
                 @php
                     $Namecompany = $data->name;
                     $allCredit += $data->total_credit;
                     $allDebit += $data->total_debit;
-                    $allLast += $data->saldo_akhir;
                 @endphp
             @endforeach
             <tr>
@@ -190,7 +186,7 @@
                 <td><b>TOTAL</b></td>
                 <td><b>Rp {{ number_format($allCredit, 0, ',', '.') }} </b></td>
                 <td><b>Rp {{ number_format($allDebit, 0, ',', '.') }} </b></td>
-                <td><b>Rp {{ number_format($allLast, 0, ',', '.') }} </b></td>
+                <td><b>Rp {{ number_format($allCredit - $allDebit, 0, ',', '.') }} </b></td>
             </tr>
         </tbody>
         </table>
