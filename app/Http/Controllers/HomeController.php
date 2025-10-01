@@ -16,6 +16,7 @@ class HomeController extends Controller
         $data = Program::with(['anak.transaction'])->get()
             ->map(function ($program) {
                 $perJenjang = [];
+                $saldo = 0;
         
                 foreach ($program->anak as $anak) {
                     foreach ($anak->transaction as $trx) {
@@ -36,7 +37,7 @@ class HomeController extends Controller
                             ];
                         }
         
-                        $saldo = $trx->credit - $trx->debit;
+                        $saldo = $saldo + $trx->credit - $trx->debit;
         
                         if ($semester === 'Semester Genap') {
                             $perJenjang[$key]['semester_1'] += $saldo;
