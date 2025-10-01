@@ -37,7 +37,7 @@ class HomeController extends Controller
                             ];
                         }
         
-                        $saldo = $saldo + $trx->credit - $trx->debit;
+                        $saldo = $trx->credit - $trx->debit;
         
                         if ($semester === 'Semester Genap') {
                             $perJenjang[$key]['semester_1'] += $saldo;
@@ -104,7 +104,12 @@ class HomeController extends Controller
                     EXTRACT(YEAR FROM transactions.created_at) as tahun,
                     SUM(transactions.credit) as total_credit,
                     SUM(transactions.debit) as total_debit,
-                    (SUM(transactions.credit) - SUM(transactions.debit)) as saldo_akhir
+                     SUM(SUM(transactions.credit) - SUM(transactions.debit)) 
+                        OVER (
+                            PARTITION BY companies.id, programs.level
+                            ORDER BY EXTRACT(YEAR FROM transactions.created_at)
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        ) as saldo_akhir
                 ")
                 ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
                 ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
