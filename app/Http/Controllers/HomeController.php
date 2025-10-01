@@ -16,7 +16,7 @@ class HomeController extends Controller
         $data = Program::with(['anak.transaction'])->get()
             ->map(function ($program) {
                 $perJenjang = [];
-                $saldo = 0;
+                $runningSaldo = [];
         
                 foreach ($program->anak as $anak) {
                     foreach ($anak->transaction as $trx) {
@@ -38,11 +38,15 @@ class HomeController extends Controller
                         }
         
                         $saldo = $trx->credit - $trx->debit;
+
+                        // simpan running saldo per jenjang
+                        $runningSaldo[$program->level] = ($runningSaldo[$program->level] ?? 0) + $saldo;
         
+                         // assign ke semester yang sesuai (tapi nilainya adalah saldo kumulatif berjalan)
                         if ($semester === 'Semester Genap') {
-                            $perJenjang[$key]['semester_1'] += $saldo;
+                            $perJenjang[$key]['semester_1'] = $runningSaldo[$program->level];
                         } else {
-                            $perJenjang[$key]['semester_2'] += $saldo;
+                            $perJenjang[$key]['semester_2'] = $runningSaldo[$program->level];
                         }
         
                         $perJenjang[$key]['total'] += $saldo;
