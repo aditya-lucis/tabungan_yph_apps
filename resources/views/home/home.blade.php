@@ -171,7 +171,7 @@
             @foreach($groupedYearly as $companyName => $programs)
                 <tr>
                     <td rowspan="{{ $programs->flatten()->count() }}">
-                        <b>{{ $companyName }}</b>
+                        {{ $companyName }}
                     </td>
                     @php $firstProgram = true; @endphp
 
