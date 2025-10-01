@@ -49,7 +49,7 @@ class HomeController extends Controller
                             $perJenjang[$key]['semester_2'] = $runningSaldo[$program->level];
                         }
         
-                        $perJenjang[$key]['total'] += $saldo;
+                        $perJenjang[$key]['total'] = $runningSaldo[$program->level];
                     }
                 }
         
