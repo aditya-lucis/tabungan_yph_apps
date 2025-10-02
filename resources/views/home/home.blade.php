@@ -38,28 +38,30 @@
         </thead>
         <tbody>
             @php
-                $totalSemester1 = 0;
-                $totalSemester2 = 0;
+                $totalGenap = 0;
+                $totalGanjil = 0;
+                $totalAkhir = 0;
             @endphp
             @foreach ($saldoPerJenjang as $row)
                 <tr>
                     <td>{{ $row->jenjang }}</td>
                     <td>{{ $row->tahun }}</td>
                     <td>{{ $row->jumlah_anak }}</td>
-                    <td>Rp {{ number_format($row->semester_1, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->semester_2, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->saldo_akhir, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->semester_genap, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->semester_ganjil, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->total_tahun, 0, ',', '.') }}</td>
                 </tr>
                 @php
-                    $totalSemester1 += $row->semester_1;
-                    $totalSemester2 += $row->semester_2;
+                    $totalGenap += $row->semester_genap;
+                    $totalGanjil += $row->semester_ganjil;
+                    $totalAkhir += $row->total_tahun;
                 @endphp
             @endforeach
             <tr>
                 <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
-                <td><strong>Rp {{ number_format($totalSemester1, 0, ',', '.') }}</strong></td>
-                <td><strong>Rp {{ number_format($totalSemester2, 0, ',', '.') }}</strong></td>
-                <td><strong>Rp {{ number_format($totalSemester1 + $totalSemester2, 0, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalGenap, 0, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalGanjil, 0, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
             </tr>
         </tbody>
     </table>
