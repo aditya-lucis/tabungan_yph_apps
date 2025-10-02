@@ -23,9 +23,9 @@
 @endsection
 
 @section('content')
-    <div class="table-card table-responsive">
+<div class="table-card table-responsive">
     <h3>Saldo Per Jenjang Pendidikan</h3>
-        <table class="table table-bordered">
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Jenjang Pendidikan</th>
@@ -40,8 +40,6 @@
             @php
                 $totalSemester1 = 0;
                 $totalSemester2 = 0;
-                $totalCredit = 0;
-                $totalDebit = 0;
             @endphp
             @foreach ($saldoPerJenjang as $row)
                 <tr>
@@ -65,7 +63,7 @@
             </tr>
         </tbody>
     </table>
-    </div>
+</div>
     <br>
     @php
         $groupedData = $semesterData->groupBy('company_name')->map(function ($programs) {

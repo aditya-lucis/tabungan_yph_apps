@@ -16,11 +16,12 @@ class HomeController extends Controller
     // ----------------------------
     // SALDO PER JENJANG
     // ----------------------------
-    $transactions = Transaction::with('anak.program')
+   $transactions = Transaction::with('anak.program')
         ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
         ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
         ->select(
             'programs.level as jenjang',
+            'data_anaks.id as id_anak',
             'transactions.credit',
             'transactions.debit',
             'transactions.created_at'
@@ -43,7 +44,7 @@ class HomeController extends Controller
             'jenjang'      => $jenjang,
             'tahun'        => (int) $tahun,
             'semester'     => $semester,
-            'jumlah_anak'  => $items->pluck('id_anak')->unique()->count(), // kalau mau jumlah anak juga
+            'jumlah_anak'  => $items->pluck('id_anak')->unique()->count(),
             'total'        => $items->sum('credit') - $items->sum('debit'),
         ]);
     }
@@ -54,8 +55,8 @@ class HomeController extends Controller
             $jenjang = $records->first()->jenjang;
             $tahun   = $records->first()->tahun;
 
-            $semester_1 = $records->firstWhere('semester','Genap')->total ?? 0;
-            $semester_2 = $records->firstWhere('semester','Ganjil')->total ?? 0;
+            $semester_1 = optional($records->firstWhere('semester','Genap'))->total ?? 0;
+            $semester_2 = optional($records->firstWhere('semester','Ganjil'))->total ?? 0;
 
             return [
                 'jenjang'      => $jenjang,
@@ -67,8 +68,7 @@ class HomeController extends Controller
         })
         ->values();
 
-
-    // Running saldo per jenjang (seperti sebelumnya)
+    // Running saldo per jenjang
     $saldoGrouped = $saldoPerJenjang->groupBy('jenjang');
     foreach ($saldoGrouped as $jenjang => $records) {
         $running = 0;
@@ -82,9 +82,9 @@ class HomeController extends Controller
     // Urutkan jenjang sesuai kebutuhan
     $order = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
     $saldoPerJenjang = $saldoPerJenjang->sortBy(function ($item) use ($order) {
-        return array_search($item->jenjang, $order) . '-' . $item->tahun;
+        return array_search($item['jenjang'], $order) . '-' . $item['tahun'];
     })->values();
-
+    
     // ----------------------------
     // SEMESTER DATA
     // ----------------------------
