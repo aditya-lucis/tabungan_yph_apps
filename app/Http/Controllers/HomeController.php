@@ -64,6 +64,8 @@ class HomeController extends Controller
                 'jumlah_anak'  => $records->sum('jumlah_anak'),
                 'semester_1'   => $semester_1,
                 'semester_2'   => $semester_2,
+                'total_tahun'  => $semester_1 + $semester_2, // sementara
+                'saldo_akhir'  => 0, // nanti diisi
             ];
         })
         ->values();
@@ -73,7 +75,7 @@ class HomeController extends Controller
     foreach ($saldoGrouped as $jenjang => $records) {
         $running = 0;
         foreach ($records->sortBy('tahun') as $rec) {
-            $running += ($rec->semester_1 + $rec->semester_2);
+            $running += $rec->total_tahun;
             $rec->saldo_akhir = $running;
         }
     }

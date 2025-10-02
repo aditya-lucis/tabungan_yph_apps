@@ -48,7 +48,7 @@
                     <td>{{ $row->jumlah_anak }}</td>
                     <td>Rp {{ number_format($row->semester_1, 0, ',', '.') }}</td>
                     <td>Rp {{ number_format($row->semester_2, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->semester_1 + $row->semester_2, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->saldo_akhir, 0, ',', '.') }}</td>
                 </tr>
                 @php
                     $totalSemester1 += $row->semester_1;
