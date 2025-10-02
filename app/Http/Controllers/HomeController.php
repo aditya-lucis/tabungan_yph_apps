@@ -28,7 +28,7 @@ class HomeController extends Controller
         )
         ->get();
 
-    // Group by jenjang + tahun + semester
+    // Grouping per jenjang + tahun + semester
     $semesterGrouped = $transactions->groupBy(function ($item) {
         $tahun = Carbon::parse($item->created_at)->year;
         $semester = Carbon::parse($item->created_at)->month <= 6 ? 'Genap' : 'Ganjil';
@@ -45,30 +45,30 @@ class HomeController extends Controller
             'tahun'        => (int) $tahun,
             'semester'     => $semester,
             'jumlah_anak'  => $items->pluck('id_anak')->unique()->count(),
-            'credit'       => $items->sum('credit'),
-            'debit'        => $items->sum('debit'),
-            'total'        => $items->sum('credit') - $items->sum('debit'),
-            'saldo_akhir'  => 0, // akan diisi running
+            'mutasi'       => $items->sum('credit') - $items->sum('debit'), // mutasi semester ini
+            'saldo_akhir'  => 0,
         ]);
     }
 
-    // Running saldo per jenjang (semester-based)
+    // Running saldo per jenjang berdasarkan waktu
     $saldoGrouped = $semesterSaldo->groupBy('jenjang');
     foreach ($saldoGrouped as $jenjang => $records) {
         $running = 0;
-        foreach ($records->sortBy(fn($i) => $i->tahun . ($i->semester === 'Genap' ? '1' : '2')) as $rec) {
-            $running += $rec->total; // tambahkan credit - debit semester ini
-            $rec->saldo_akhir = $running;
+        foreach ($records->sortBy([['tahun','asc'],['semester','asc']]) as $rec) {
+            $running += $rec->mutasi;    // tambah/dikurangi mutasi semester ini
+            $rec->saldo_akhir = $running; // saldo berjalan
         }
     }
-    $semesterSaldo = $saldoGrouped->flatten();
 
-    // Urutkan hasil akhir
+    // Flatten kembali
+    $saldoPerSemester = $saldoGrouped->flatten();
+
+    // Urutkan sesuai jenjang + waktu
     $order = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
-    $saldoPerJenjang = $semesterSaldo->sortBy(function ($item) use ($order) {
-        return array_search($item->jenjang, $order) . '-' . $item->tahun . '-' . ($item->semester === 'Genap' ? '1' : '2');
+    $saldoPerJenjang = $saldoPerSemester->sortBy(function ($item) use ($order) {
+        $semesterOrder = $item->semester === 'Genap' ? 1 : 2;
+        return array_search($item->jenjang, $order) . '-' . $item->tahun . '-' . $semesterOrder;
     })->values();
-
     // ----------------------------
     // SEMESTER DATA
     // ----------------------------
