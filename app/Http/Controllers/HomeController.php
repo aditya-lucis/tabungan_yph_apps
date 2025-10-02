@@ -65,7 +65,7 @@ class HomeController extends Controller
 
     // Urutkan hasil akhir
     $order = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
-    $semesterSaldo = $semesterSaldo->sortBy(function ($item) use ($order) {
+    $saldoPerJenjang = $semesterSaldo->sortBy(function ($item) use ($order) {
         return array_search($item->jenjang, $order) . '-' . $item->tahun . '-' . ($item->semester === 'Genap' ? '1' : '2');
     })->values();
 
