@@ -38,8 +38,9 @@
         </thead>
         <tbody>
              @php
-                $allCredit = 0;
-                $allDebit = 0;
+                $allSaldoGenap = 0;
+                $allSaldoGanjil = 0;
+                $allTotalPerTahun = 0;
             @endphp
 
             @foreach ($saldoPerJenjang as $row)
@@ -47,20 +48,21 @@
                     <td>{{ $row->jenjang }}</td>
                     <td>{{ $row->tahun }}</td>
                     <td>{{ $row->jumlah_anak }}</td>
-                    <td>Rp {{ number_format($row->total_credit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->total_debit, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->saldo_akhir, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->saldo_genap, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->saldo_ganjil, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row->total_per_tahun, 0, ',', '.') }}</td>
                 </tr>
                 @php
-                    $allCredit += $row->total_credit;
-                    $allDebit += $row->total_debit;
+                    $allSaldoGenap += $row->saldo_genap;
+                    $allSaldoGanjil += $row->saldo_ganjil;
+                    $allTotalPerTahun += $row->total_per_tahun;
                 @endphp
             @endforeach
             <tr>
                 <td colspan="3"><b>TOTAL KESELURUHAN</b></td>
-                <td><b>Rp {{ number_format($allCredit, 0, ',', '.') }}</b></td>
-                <td><b>Rp {{ number_format($allDebit, 0, ',', '.') }}</b></td>
-                <td><b>Rp {{ number_format($allCredit - $allDebit, 0, ',', '.') }}</b></td>
+                <td><b>Rp {{ number_format($allSaldoGenap, 0, ',', '.') }}</b></td>
+                <td><b>Rp {{ number_format($allSaldoGanjil, 0, ',', '.') }}</b></td>
+                <td><b>Rp {{ number_format($allTotalPerTahun, 0, ',', '.') }}</b></td>
             </tr>
         </tbody>
     </table>

@@ -30,34 +30,57 @@ class HomeController extends Controller
             ->get();
 
         $grouped = $transactions->groupBy(function ($item) {
-            return $item->jenjang . '-' . \Carbon\Carbon::parse($item->created_at)->year;
+            $tahun = Carbon::parse($item->created_at)->year;
+            $semester = Carbon::parse($item->created_at)->month <= 6 ? 'Semester Genap' : 'Semester Ganjil';
+            return $item->jenjang . '-' . $tahun . '-' . $semester;
         });
 
         $saldoPerJenjang = collect();
         foreach ($grouped as $key => $items) {
-            [$jenjang, $tahun] = explode('-', $key);
+            [$jenjang, $tahun, $semester] = explode('-', $key);
 
             $saldoPerJenjang->push((object) [
                 'jenjang'       => $jenjang,
                 'tahun'         => (int) $tahun,
+                'semester'      => $semester,
                 'jumlah_anak'   => $items->pluck('anak_id')->unique()->count(),
                 'total_credit'  => $items->sum('credit'),
                 'total_debit'   => $items->sum('debit'),
             ]);
         }
 
-        // running balance per jenjang
-        $saldoGrouped = $saldoPerJenjang->groupBy('jenjang');
-        foreach ($saldoGrouped as $jenjang => $records) {
-            $running = 0;
-            foreach ($records->sortBy('tahun') as $record) {
-                $running += $record->total_credit - $record->total_debit;
-                $record->saldo_akhir = $running;
-            }
-        }
-        $saldoPerJenjang = $saldoGrouped->flatten();
+        // =============================================
+        // Logika Baru: Menggabungkan saldo per tahun
+        // =============================================
+        $saldoTahunan = collect();
+        $saldoPerJenjang->groupBy(['jenjang', 'tahun'])->each(function ($items, $key) use ($saldoTahunan) {
+            $jenjang = $key[0];
+            $tahun = $key[1];
+
+            $genap = $items->firstWhere('semester', 'Semester Genap');
+            $ganjil = $items->firstWhere('semester', 'Semester Ganjil');
+
+            $totalCreditGenap = $genap ? $genap->total_credit : 0;
+            $totalDebitGenap = $genap ? $genap->total_debit : 0;
+
+            $totalCreditGanjil = $ganjil ? $ganjil->total_credit : 0;
+            $totalDebitGanjil = $ganjil ? $ganjil->total_debit : 0;
+
+            // Jumlah anak unik (unik per tahun)
+            $jumlahAnak = $items->sum('jumlah_anak');
+
+            $saldoTahunan->push((object) [
+                'jenjang'       => $jenjang,
+                'tahun'         => $tahun,
+                'jumlah_anak'   => $jumlahAnak,
+                'total_credit'  => $totalCreditGenap + $totalCreditGanjil,
+                'total_debit'   => $totalDebitGenap + $totalDebitGanjil,
+            ]);
+        });
+
+        // urutkan kembali hasilnya
         $order = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
-        $saldoPerJenjang = $saldoPerJenjang->sortBy(function ($item) use ($order) {
+        $saldoPerJenjang = $saldoTahunan->sortBy(function ($item) use ($order) {
             return array_search($item->jenjang, $order) . '-' . $item->tahun;
         })->values();
 
