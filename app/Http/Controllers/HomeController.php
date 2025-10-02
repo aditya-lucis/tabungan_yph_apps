@@ -16,11 +16,14 @@ class HomeController extends Controller
                 programs.level as jenjang,
                 EXTRACT(YEAR FROM transactions.created_at) as tahun,
                 COUNT(DISTINCT data_anaks.id) as jumlah_anak,
-                SUM(CASE WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 1 AND 6 
-                     THEN transactions.credit - transactions.debit ELSE 0 END) as semester_genap,
-                SUM(CASE WHEN EXTRACT(MONTH FROM transactions.created_at) BETWEEN 7 AND 12 
-                     THEN transactions.credit - transactions.debit ELSE 0 END) as semester_ganjil,
-                SUM(transactions.credit - transactions.debit) as total_per_tahun
+                SUM(transactions.credit) as total_credit,
+                SUM(transactions.debit) as total_debit,
+                SUM(SUM(transactions.credit) - SUM(transactions.debit)) 
+                    OVER (
+                        PARTITION BY programs.level
+                        ORDER BY EXTRACT(YEAR FROM transactions.created_at)
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                    ) as saldo_akhir
             ")
             ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
