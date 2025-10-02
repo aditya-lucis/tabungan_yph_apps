@@ -37,32 +37,31 @@
             </tr>
         </thead>
         <tbody>
-             @php
-                $allSaldoGenap = 0;
-                $allSaldoGanjil = 0;
-                $allTotalPerTahun = 0;
+            @php
+                $totalSemester1 = 0;
+                $totalSemester2 = 0;
+                $totalCredit = 0;
+                $totalDebit = 0;
             @endphp
-
             @foreach ($saldoPerJenjang as $row)
                 <tr>
-                    <td>{{ $row->jenjang }}</td>
-                    <td>{{ $row->tahun }}</td>
-                    <td>{{ $row->jumlah_anak }}</td>
-                    <td>Rp {{ number_format($row->saldo_genap, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->saldo_ganjil, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->total_per_tahun, 0, ',', '.') }}</td>
+                    <td>{{ $row['jenjang'] }}</td>
+                    <td>{{ $row['tahun'] }}</td>
+                    <td>{{ $row['jumlah_anak'] }}</td>
+                    <td>Rp {{ number_format($row['semester_1'], 2, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row['semester_2'], 2, ',', '.') }}</td>
+                    <td>Rp {{ number_format($row['semester_1'] + $row['semester_2'], 2, ',', '.') }}</td>
                 </tr>
                 @php
-                    $allSaldoGenap += $row->saldo_genap;
-                    $allSaldoGanjil += $row->saldo_ganjil;
-                    $allTotalPerTahun += $row->total_per_tahun;
+                    $totalSemester1 += $row['semester_1'];
+                    $totalSemester2 += $row['semester_2'];
                 @endphp
             @endforeach
             <tr>
-                <td colspan="3"><b>TOTAL KESELURUHAN</b></td>
-                <td><b>Rp {{ number_format($allSaldoGenap, 0, ',', '.') }}</b></td>
-                <td><b>Rp {{ number_format($allSaldoGanjil, 0, ',', '.') }}</b></td>
-                <td><b>Rp {{ number_format($allTotalPerTahun, 0, ',', '.') }}</b></td>
+                <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
+                <td><strong>Rp {{ number_format($totalSemester1, 2, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalSemester2, 2, ',', '.') }}</strong></td>
+                <td><strong>Rp {{ number_format($totalSemester1 + $totalSemester2, 2, ',', '.') }}</strong></td>
             </tr>
         </tbody>
     </table>
