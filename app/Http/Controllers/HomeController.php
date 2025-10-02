@@ -16,7 +16,7 @@ class HomeController extends Controller
     // ----------------------------
     // SALDO PER JENJANG
     // ----------------------------
-   $transactions = Transaction::with('anak.program')
+    $transactions = Transaction::with('anak.program')
         ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
         ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
         ->select(
@@ -27,7 +27,7 @@ class HomeController extends Controller
             'transactions.created_at'
         )
         ->get();
-        
+
     // Grouping by jenjang + tahun + semester
     $semesterGrouped = $transactions->groupBy(function ($item) {
         $tahun = Carbon::parse($item->created_at)->year;
@@ -49,7 +49,7 @@ class HomeController extends Controller
         ]);
     }
 
-    // gabungkan per tahun jadi semester_1 & semester_2
+    // Gabungkan per tahun jadi semester_1 & semester_2
     $saldoPerJenjang = $semesterSaldo->groupBy(fn($i) => $i->jenjang.'-'.$i->tahun)
         ->map(function ($records) {
             $jenjang = $records->first()->jenjang;
@@ -58,7 +58,7 @@ class HomeController extends Controller
             $semester_1 = optional($records->firstWhere('semester','Genap'))->total ?? 0;
             $semester_2 = optional($records->firstWhere('semester','Ganjil'))->total ?? 0;
 
-            return [
+            return (object) [
                 'jenjang'      => $jenjang,
                 'tahun'        => $tahun,
                 'jumlah_anak'  => $records->sum('jumlah_anak'),
@@ -72,9 +72,9 @@ class HomeController extends Controller
     $saldoGrouped = $saldoPerJenjang->groupBy('jenjang');
     foreach ($saldoGrouped as $jenjang => $records) {
         $running = 0;
-        foreach ($records->sortBy('tahun') as &$rec) {
-            $running += ($rec['semester_1'] + $rec['semester_2']);
-            $rec['saldo_akhir'] = $running;
+        foreach ($records->sortBy('tahun') as $rec) {
+            $running += ($rec->semester_1 + $rec->semester_2);
+            $rec->saldo_akhir = $running;
         }
     }
     $saldoPerJenjang = $saldoGrouped->flatten();
@@ -82,9 +82,9 @@ class HomeController extends Controller
     // Urutkan jenjang sesuai kebutuhan
     $order = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
     $saldoPerJenjang = $saldoPerJenjang->sortBy(function ($item) use ($order) {
-        return array_search($item['jenjang'], $order) . '-' . $item['tahun'];
+        return array_search($item->jenjang, $order) . '-' . $item->tahun;
     })->values();
-    
+
     // ----------------------------
     // SEMESTER DATA
     // ----------------------------
