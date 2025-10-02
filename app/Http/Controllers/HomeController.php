@@ -73,8 +73,9 @@ class HomeController extends Controller
                 'jenjang'       => $jenjang,
                 'tahun'         => $tahun,
                 'jumlah_anak'   => $jumlahAnak,
-                'total_credit'  => $totalCreditGenap + $totalCreditGanjil,
-                'total_debit'   => $totalDebitGenap + $totalDebitGanjil,
+                'saldo_genap'       => $totalCreditGenap - $totalDebitGenap,
+                'saldo_ganjil'      => $totalCreditGanjil - $totalDebitGanjil,
+                'total_per_tahun'   => ($totalCreditGenap - $totalDebitGenap) + ($totalCreditGanjil - $totalDebitGanjil),
             ]);
         });
 
