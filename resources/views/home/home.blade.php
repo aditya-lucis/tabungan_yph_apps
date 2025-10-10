@@ -159,8 +159,8 @@
             <tbody>
             @php
 
-                $groupedYearly = $yearlyData->groupBy('name')->map(function ($items) {
-                    return $items->groupBy('level')->map(function ($subItems) {
+                $groupedYearly = $yearlyData->groupBy('company_name')->map(function ($items) {
+                    return $items->groupBy('program_level')->map(function ($subItems) {
                         return $subItems->sortBy('tahun');
                     });
                 });
