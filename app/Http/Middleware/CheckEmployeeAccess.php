@@ -3,6 +3,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckEmployeeAccess
@@ -11,31 +12,48 @@ class CheckEmployeeAccess
     {
         $user = $request->user();
 
-        // 🔒 cek akses employee/{employee} detail
-        $requestedParam = $request->route('id') ?? $request->route('employee');
+        if (!$user) {
+            return $next($request);
+        }
 
-        if ($user && $user->role === 'krw') {
-
+        if ($user->role === 'krw') {
             $routeName = $request->route()->getName();
 
             // 🔒 blok akses home
             if ($routeName === 'homeindex') {
-                return redirect()->route('employee.show', $user->id_employee)
-                    ->with('error', 'Unauthorized access.');
+                return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                                 ->with('error', 'Unauthorized access.');
             }
 
             // 🔒 blok akses employee.index
             if ($routeName === 'employee.index') {
-                return redirect()->route('employee.show', $user->id_employee)
-                    ->with('error', 'Unauthorized access.');
+                return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                                 ->with('error', 'Unauthorized access.');
             }
 
-            if ($requestedParam) {
-                $requestedId = is_object($requestedParam) ? $requestedParam->id : $requestedParam;
+            // 🔒 cek detail employee atau pengajuan
+            $encrypted = $request->route('employee') ?? $request->route('id');
 
-                if ((int) $requestedId !== (int) $user->id_employee) {
-                    return redirect()->route('employee.show', $user->id_employee)
-                    ->with('error', 'Unauthorized access.');
+            if ($encrypted) {
+                try {
+                    $requestedId = Crypt::decryptString($encrypted);
+                } catch (\Exception $e) {
+                    return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                                     ->with('error', 'Invalid ID.');
+                }
+
+                // jika ID tidak sesuai
+                if ((int)$requestedId !== (int)$user->id_employee) {
+                    return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                                     ->with('error', 'Unauthorized access.');
+                }
+
+                // ganti parameter route menjadi ID asli supaya controller bisa pakai
+                if ($request->route('employee')) {
+                    $request->route()->setParameter('employee', $requestedId);
+                }
+                if ($request->route('id')) {
+                    $request->route()->setParameter('id', $requestedId);
                 }
             }
         }

@@ -118,14 +118,14 @@ class InboxController extends Controller
             : "Mohon maaf, pengajuan pencairan saldo tabungan kamu atas nama $anakData->nama sebesar Rp. $nominalreq tidak bisa disetujui. Untuk info lebih lanjut anda bisa menghubungi bagian Divisi Pendidikan Yayasan Persada Hati.";
 
 
-        $emailData = [
-            'title' => $title,
-            'body' => $body,
-            'subject' => $title,
-            'alert' => false
-        ];
+        // $emailData = [
+        //     'title' => $title,
+        //     'body' => $body,
+        //     'subject' => $title,
+        //     'alert' => false
+        // ];
 
-        $toEmail = $pengaju->email;
+        // $toEmail = $pengaju->email;
 
         // if ($toEmail) {
         //     Mail::to($toEmail)->queue(new CustomEmail($emailData));

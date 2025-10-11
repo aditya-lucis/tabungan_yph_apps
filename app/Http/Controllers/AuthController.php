@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class AuthController extends Controller
 {
@@ -32,7 +33,7 @@ class AuthController extends Controller
             // Redirect khusus jika punya id_employee
             if ($user->id_employee) {
                 return response()->json([
-                    'redirect' => route('employee.show', $user->id_employee),
+                    'redirect' => route('employee.show', Crypt::encryptString($user->id_employee)),
                 ]);
             }
     

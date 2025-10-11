@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
                 
                 // Jika role 'krw' dan punya id_employee, ubah home ke 'employee.show' (bukan URL langsung)
                 if ($user->role === 'krw' && $user->id_employee) {
-                    $homeRoute = ['name' => 'employee.show', 'params' => ['employee' => $user->id_employee]];
+                    $homeRoute = ['name' => 'employee.show', 'params' => ['employee' =>  Crypt::encryptString($user->id_employee)]];
                 } else {
                     $homeRoute = ['name' => 'homeindex', 'params' => []];
                 }

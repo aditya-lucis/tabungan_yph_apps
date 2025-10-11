@@ -115,8 +115,8 @@ class HomeController extends Controller
             ->get();
 
         $semesterGrouped = $semesterTx->groupBy(function ($item) {
-            $tahun = \Carbon\Carbon::parse($item->created_at)->year;
-            $semester = \Carbon\Carbon::parse($item->created_at)->month <= 6 ? 'Semester Genap' : 'Semester Ganjil';
+            $tahun = Carbon::parse($item->created_at)->year;
+            $semester = Carbon::parse($item->created_at)->month <= 6 ? 'Semester Genap' : 'Semester Ganjil';
             return $item->company_id . '-' . $item->program_level . '-' . $tahun . '-' . $semester;
         });
 
@@ -167,7 +167,7 @@ class HomeController extends Controller
             ->get();
 
         $yearlyGrouped = $yearlyTx->groupBy(function ($item) {
-            return $item->company_id . '-' . $item->program_level . '-' . \Carbon\Carbon::parse($item->created_at)->year;
+            return $item->company_id . '-' . $item->program_level . '-' . Carbon::parse($item->created_at)->year;
         });
 
         $yearlyData = collect();

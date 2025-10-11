@@ -25,6 +25,8 @@ use App\Exports\SaldoAnakFormatExport;
 use Yajra\DataTables\Facades\DataTables;
 use App\Notifications\NotifAddCreditScore;
 use App\Notifications\NotifReqApprovalCreated;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class PengajuanController extends Controller
 {
@@ -45,8 +47,13 @@ class PengajuanController extends Controller
     }
 
     public function add($idEmployee) {
-        $employee = Employee::where('id', $idEmployee)->first(); // Ambil satu record
-        $anakData = DataAnak::where('id_karyawan', $idEmployee)->get();
+
+        $realId = (Auth::user()->role !== 'krw') 
+                            ? Crypt::decryptString($idEmployee) 
+                            : $idEmployee;
+
+        $employee = Employee::where('id', $realId)->first(); // Ambil satu record
+        $anakData = DataAnak::where('id_karyawan', $realId)->get();
         $programs = Program::all();
     
         return view('transaksi.pengajuan.create', compact('employee', 'programs', 'anakData'));
@@ -129,17 +136,23 @@ class PengajuanController extends Controller
                     ]);
 
                 $employee = Employee::find($employeeId);
+                $idEmployee = (Auth::user()->role === 'krw') 
+                                ? Crypt::encryptString($employee->id) 
+                                : $employee->id;
 
-                $toEmail = $employee->user->email;
+                if (Auth::user()->role === 'krw') {
+                    $toEmail = $employee->user->email;
 
-                $emailData = [
-                    'title' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
-                    'body' => "Halo $employee->name, terima kasih atas kepercayaan Anda, Anda baru saja mengajukan pendaftaran peserta tabungan pendidikan untuk anak anda yang bernama $anakData->nama, yang bersekolah di $anakData->nama_sekolah. Silahkan menunggu konfirmasi selanjutnya, atau bila ingin info lebih lanjut, anda bisa menghubungi Divisi Pendidikan Yayasan Persada Hati.",
-                    'subject' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
-                    'alert' => true
-                ];
+                    $emailData = [
+                        'title' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
+                        'body' => "Halo $employee->name, terima kasih atas kepercayaan Anda, Anda baru saja mengajukan pendaftaran peserta tabungan pendidikan untuk anak anda yang bernama $anakData->nama, yang bersekolah di $anakData->nama_sekolah. Silahkan menunggu konfirmasi selanjutnya, atau bila ingin info lebih lanjut, anda bisa menghubungi Divisi Pendidikan Yayasan Persada Hati.",
+                        'subject' => "Konfirmasi Pengajuan Peserta Tabungan Pendidikan",
+                        'alert' => true
+                    ];
 
-                // Mail::to($toEmail)->queue(new CustomEmail($emailData));
+                    Mail::to($toEmail)->queue(new CustomEmail($emailData));
+                }
+
 
                 $admins = User::where('role', 'adm')->get();
                 foreach ($admins as $admin) {
@@ -150,7 +163,7 @@ class PengajuanController extends Controller
             DB::commit(); // Simpan transaksi
 
             // return redirect()->back()->with('success', 'Data anak berhasil disimpan!');
-            return redirect()->route('employee.show', $employeeId)->with('success', 'Data anak berhasil disimpan!');
+            return redirect()->route('employee.show', $idEmployee)->with('success', 'Data anak berhasil disimpan!');
 
         } catch (\Exception $e) {
             DB::rollBack(); // Kembalikan transaksi jika ada error
@@ -209,19 +222,22 @@ class PengajuanController extends Controller
         }
 
         $nominalreq = number_format($request->nominal, 2);
+
+        if (Auth::user()->role === 'krw') {
+            $emailData = [
+                'title' => 'Permohonan Pencairan Saldo Tabungan',
+                'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk $anakData->nama sebesar Rp. $nominalreq. Silahkan menunggu kabar balasan dari Yayasan Pesada Hati Divisi Pendidikan.",
+                'subject' => 'Permohonan Pencairan Saldo Tabungan',
+                'alert' => true
+            ];
+
+            $toEmail = $anakData->karyawan->user->email;
+
+            // if ($toEmail) {
+            //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
+            // }
+        }
         
-        $emailData = [
-            'title' => 'Permohonan Pencairan Saldo Tabungan',
-            'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk $anakData->nama sebesar Rp. $nominalreq. Silahkan menunggu kabar balasan dari Yayasan Pesada Hati Divisi Pendidikan.",
-            'subject' => 'Permohonan Pencairan Saldo Tabungan',
-            'alert' => true
-        ];
-
-        $toEmail = $anakData->karyawan->user->email;
-
-        // if ($toEmail) {
-        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        // }
     
         if ($anakData) {
             return response()->json(['success' => true, 'message' => "Form yang lengkap akan memudahkan pencairan dana. Jadi lengkapi form anda untuk kemudahan pencairan."]);
