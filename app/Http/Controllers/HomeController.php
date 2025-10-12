@@ -188,14 +188,19 @@ class HomeController extends Controller
         }
 
         // running saldo per company + program
-        $yearlySaldo = $yearlyData->groupBy(fn($i) => $i->company_id . '-' . $i->program_level);
-        foreach ($yearlySaldo as $key => $records) {
-            $running = 0;
-            foreach ($records->sortBy('tahun') as $rec) {
-                $running += $rec->total_credit - $rec->total_debit;
-                $rec->saldo_akhir = $running;
-            }
-        }
+        $yearlySaldo = $yearlyData
+            ->groupBy(fn($i) => $i->company_id . '-' . $i->program_level)
+            ->map(function ($records) {
+                $running = 0;
+                return $records
+                    ->sortBy('tahun')
+                    ->map(function ($rec) use (&$running) {
+                        $running += $rec->total_credit - $rec->total_debit;
+                        $rec->saldo_akhir = $running;
+                        return $rec;
+                    });
+            });
+
         $yearlyData = $yearlySaldo->flatten();
 
 
