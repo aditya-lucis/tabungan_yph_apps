@@ -101,7 +101,7 @@
                         @endphp
 
                         @foreach($records->sortBy(function ($item) {
-                            return $item->tahun * 10 + ($item->semester === 'Semester 1' ? 1 : 2);
+                            return $item->tahun * 10 + ($item->semester === 'Semester Genap' ? 1 : 2);
                         }) as $data)
                             <tr>
                                 <td>{{ $showCompany ? $companyName : '' }}</td>

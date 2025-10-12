@@ -139,7 +139,10 @@ class HomeController extends Controller
         $groupedSaldo = $semesterData->groupBy(fn($i) => $i->company_id . '-' . $i->program_level);
         foreach ($groupedSaldo as $key => $records) {
             $running = 0;
-            foreach ($records->sortBy(fn($i) => $i->tahun . $i->semester) as $rec) {
+            foreach ($records->sortBy(function($i){
+                $semesterNumber = $i->semester === 'Semester Genap' ? 1 : 2;
+                return $i->tahun * 10 + $semesterNumber;
+            }) as $rec) {
                 $running += $rec->total_credit - $rec->total_debit;
                 $rec->saldo_akhir = $running;
             }
