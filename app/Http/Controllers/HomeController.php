@@ -54,7 +54,9 @@ class HomeController extends Controller
         $saldoPerJenjang = collect();
         foreach ($semesterSaldo->groupBy('jenjang') as $jenjang => $records) {
             $running = 0;
-            foreach ($records->sortBy([['tahun','asc'],['semester','asc']]) as $rec) {
+            foreach ($records->sortBy(function($i){
+                return $i->tahun * 10 + ($i->semester === 'Genap' ? 1 : 2);
+            }) as $rec) {
                 $running += $rec->mutasi;
 
                 // cari existing row (tahun + jenjang)
