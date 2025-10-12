@@ -58,6 +58,13 @@
         style="background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); 
                 padding:20px; max-width:420px; margin:auto;">
 
+        @php
+            // Gabungkan nama perusahaan dan total anak jadi satu label
+            $companyLabels = $companychild->map(function ($item) {
+                return $item->name . ' = ' . $item->total_anak_perusahaan;
+            });
+        @endphp
+
         <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
                 background:#eaf1ff; padding:6px 12px; border-radius:6px;">
             Total Anak Per Company
@@ -311,7 +318,7 @@ $(document).ready(function() {
     new Chart(ctxCompany, {
         type: 'pie',
         data: {
-            labels: {!! json_encode($companychild->pluck('name')) !!},
+            labels: {!! json_encode($companyLabels) !!},
             datasets: [{
                 data: {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!},
                 backgroundColor: [
