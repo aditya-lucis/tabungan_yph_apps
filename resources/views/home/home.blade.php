@@ -19,10 +19,62 @@
     .no-border-top {
         border-top: none !important;
     }
+    .chart-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px; /* jarak antar chart */
+    }
+
+    .chart-card {
+        background: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        flex: 1 1 45%; /* lebar sekitar 45% dan bisa menyesuaikan */
+        box-sizing: border-box;
+        min-width: 300px; /* agar tidak terlalu kecil di layar sempit */
+    }
+
 </style>
 @endsection
 
 @section('content')
+<div class="chart-container">
+    <!-- Chart 1 -->
+    <div class="chart-card">
+        <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
+                background:#eaf1ff; padding:6px 12px; border-radius:6px;">Total Anak Per Jenjang Pendidikan</h3>
+        <div style="height:300px; width:300px; margin:auto;">
+            <canvas id="programChart"></canvas>
+        </div>
+        <div style="margin-top:10px; text-align:center; font-weight:600;">
+            Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
+        </div>
+    </div>
+
+    <!-- Chart 2 -->
+    <div class="chart-card" 
+        style="background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); 
+                padding:20px; max-width:420px; margin:auto;">
+
+        <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
+                background:#eaf1ff; padding:6px 12px; border-radius:6px;">
+            Total Anak Per Company
+        </h3>
+
+        <div style="height:300px; width:100%; display:flex; justify-content:center; align-items:center;">
+            <canvas id="companyChart"></canvas>
+        </div>
+
+        <div style="margin-top:12px; text-align:center; font-weight:600; color:#001f5b;">
+            Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
+        </div>
+    </div>
+</div>
+
+<br>
+
 <div class="table-card table-responsive">
     <h3>Saldo Per Jenjang Pendidikan</h3>
     <table class="table table-bordered">
@@ -209,6 +261,7 @@
 @endsection
 
 @section('script')
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ asset('assets/master/lib/bootstrap/js/bootstrap.min.js') }}"></script>
 <script src="{{ asset('assets/master/lib/datatables.net/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('assets/master/lib/datatables.net-dt/js/dataTables.dataTables.min.js') }}"></script>
@@ -234,5 +287,68 @@ $(document).ready(function() {
         }
     });
 });
+</script>
+<script>
+    // === Chart 1: Program ===
+    new Chart(document.getElementById('programChart'), {
+        type: 'pie',
+        data: {
+            labels: {!! json_encode($programAll->pluck('level')) !!},
+            datasets: [{
+                data: {!! json_encode($programAll->pluck('anak_dengan_transaksi_count')) !!},
+                backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // === Chart 2: Company ===
+    const ctxCompany = document.getElementById('companyChart').getContext('2d');
+    new Chart(ctxCompany, {
+        type: 'pie',
+        data: {
+            labels: {!! json_encode($companychild->pluck('name')) !!},
+            datasets: [{
+                data: {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!},
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#C9CBCF', '#6EE7B7', '#F472B6'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 12,
+                        font: {
+                            size: 12,
+                            family: 'Arial, sans-serif'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            return `${label}: ${value}`;
+                        }
+                    }
+                }
+            },
+            layout: { padding: { bottom: 10 } }
+        }
+    });
 </script>
 @endsection

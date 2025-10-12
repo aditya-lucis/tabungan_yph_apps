@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Models\Program;
 use App\Models\Transaction;
@@ -207,6 +208,36 @@ class HomeController extends Controller
 
 
         // ----------------------------
-        return view('home.home', compact('saldoPerJenjang', 'semesterData', 'yearlyData'));
+
+        $programAll = Program::withCount([
+            'anak as anak_dengan_transaksi_count' => function ($query) {
+                $query->whereHas('transaction')
+                ->whereHas('karyawan', function ($q) {
+                    $q->where('isactive', 1); // Hanya yang orangtua aktif
+                });
+            }
+        ])->get();
+
+        // hitung total semua anak dengan transaksi
+        $sumallChild = $programAll->sum('anak_dengan_transaksi_count');
+
+        $companychild = Company::select('companies.*')
+    ->selectSub(function ($query) {
+        $query->from('data_anaks')
+            ->selectRaw('COUNT(data_anaks.id)')
+            ->join('employees', 'employees.id', '=', 'data_anaks.id_karyawan')
+            ->where('employees.isactive', 1)
+            ->whereExists(function ($sub) {
+                $sub->select(DB::raw(1))
+                    ->from('transactions')
+                    ->whereColumn('transactions.id_anak', 'data_anaks.id');
+            })
+            ->whereColumn('employees.company_id', 'companies.id');
+    }, 'total_anak_perusahaan')
+    ->get();
+
+
+
+        return view('home.home', compact('saldoPerJenjang', 'semesterData', 'yearlyData', 'programAll', 'sumallChild', 'companychild'));
     }
 }
