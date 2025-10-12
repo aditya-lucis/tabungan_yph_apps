@@ -68,7 +68,7 @@
         </div>
 
         <div style="margin-top:12px; text-align:center; font-weight:600; color:#001f5b;">
-            Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
+            Total Anak Keseluruhan: <b>{{ $sumAllCompanyChild }}</b>
         </div>
     </div>
 </div>
