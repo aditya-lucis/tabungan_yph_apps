@@ -34,6 +34,26 @@
         flex: 1 1 45%; /* lebar sekitar 45% dan bisa menyesuaikan */
         box-sizing: border-box;
         min-width: 300px; /* agar tidak terlalu kecil di layar sempit */
+    }    
+    /* Styling untuk legend HTML agar rapi dan bisa di-scroll */
+    #companyLegend ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    #companyLegend li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: #333;
+    }
+    #companyLegend li span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 3px;
     }
 
 </style>
@@ -52,34 +72,27 @@
             Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
         </div>
     </div>
-
-    <!-- Chart 2 -->
-    <div class="chart-card" 
-        style="background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); 
-                padding:20px; max-width:420px; margin:auto;">
-
-        @php
-            // Gabungkan nama perusahaan dan total anak jadi satu label
-            $companyLabels = $companychild->map(function ($item) {
-                return $item->name . ' = ' . $item->total_anak_perusahaan;
-            });
-        @endphp
-
-        <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
+    
+    <!-- Chart Card -->
+     <div class="chart-card">
+            <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
                 background:#eaf1ff; padding:6px 12px; border-radius:6px;">
-            Total Anak Per Company
-        </h3>
+                <b>Total Anak Per Company</b>
+            </h3>
+            <div style="height:300px; width:300px; margin:auto;">
+                <canvas id="chartCompany" height="300"></canvas>
+            </div>
 
-        <div style="height:300px; width:100%; display:flex; justify-content:center; align-items:center;">
-            <canvas id="companyChart"></canvas>
-        </div>
+            <!-- Legend di luar canvas agar bisa discroll -->
+            <div id="chartLegend" 
+                style="max-height:150px; overflow-y:auto; margin-top:10px; border:1px solid #eee; border-radius:10px; padding:10px; font-size:14px;">
+            </div>
 
-        <div style="margin-top:12px; text-align:center; font-weight:600; color:#001f5b;">
-            Total Anak Keseluruhan: <b>{{ $sumAllCompanyChild }}</b>
+            <h4 style="text-align:center; color:#002776;">
+                Total Anak Keseluruhan: <b>{{ $companychild->sum('total_anak_perusahaan') }}</b>
+            </h4>
         </div>
-    </div>
 </div>
-
 <br>
 
 <div class="table-card table-responsive">
@@ -314,48 +327,60 @@ $(document).ready(function() {
     });
 
     // === Chart 2: Company ===
-    const ctxCompany = document.getElementById('companyChart').getContext('2d');
-    new Chart(ctxCompany, {
-        type: 'pie',
-        data: {
-            labels: {!! json_encode($companyLabels) !!},
-            datasets: [{
-                data: {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!},
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                    '#FF9F40', '#C9CBCF', '#6EE7B7', '#F472B6'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        boxWidth: 15,
-                        padding: 12,
-                        font: {
-                            size: 12,
-                            family: 'Arial, sans-serif'
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            return `${label}: ${value}`;
-                        }
-                    }
-                }
-            },
-            layout: { padding: { bottom: 10 } }
+    // Buat warna otomatis sesuai jumlah data
+    const generateColors = (n) => {
+    const colors = [];
+    for (let i = 0; i < n; i++) {
+        const hue = (i * 37) % 360; // variasi warna tetap konsisten
+        colors.push(`hsl(${hue}, 70%, 60%)`);
+    }
+    return colors;
+    };
+
+    const ctx = document.getElementById('chartCompany').getContext('2d');
+    const names = {!! json_encode($companychild->pluck('name')) !!};
+    const totals = {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!};
+    const colors = generateColors(names.length); // warna otomatis sebanyak jumlah perusahaan
+
+    const chart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: names,
+        datasets: [{
+        data: totals,
+        backgroundColor: colors,
+        borderWidth: 1
+        }]
+    },
+    options: {
+        plugins: {
+        legend: { display: false },
+        tooltip: {
+            callbacks: {
+            label: function(context) {
+                return context.label + ' = ' + context.formattedValue;
+            }
+            }
         }
+        }
+    }
     });
+
+    // Legend custom di luar canvas
+    const legendContainer = document.getElementById('chartLegend');
+    names.forEach((name, i) => {
+    const color = colors[i];
+    const total = totals[i];
+    const item = document.createElement('div');
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.marginBottom = '6px';
+    item.innerHTML = `
+        <div style="width:14px; height:14px; background:${color}; border-radius:3px; margin-right:8px;"></div>
+        <span>${name} = <b>${total}</b></span>
+    `;
+    legendContainer.appendChild(item);
+    });
+
 </script>
 @endsection
