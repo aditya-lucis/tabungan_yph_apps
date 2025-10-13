@@ -20,7 +20,9 @@ class HomeController extends Controller
 
         $transactions = Transaction::with('anak.program')
             ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
+            ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
+            ->where('employees.isactive', true)
             ->select(
                 'programs.level as jenjang',
                 'data_anaks.id as id_anak',
@@ -103,6 +105,7 @@ class HomeController extends Controller
             ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
             ->join('companies', 'employees.company_id', '=', 'companies.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
+            ->where('employees.isactive', true)
             ->select(
                 'transactions.id',
                 'transactions.credit',
@@ -158,6 +161,7 @@ class HomeController extends Controller
             ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
             ->join('companies', 'employees.company_id', '=', 'companies.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
+            ->where('employees.isactive', true)
             ->select(
                 'transactions.id',
                 'transactions.credit',
