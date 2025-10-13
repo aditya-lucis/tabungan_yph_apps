@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
 use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\Facades\DataTables;
 use App\Exports\UserEmployeeMigrate;
 use App\Imports\UserEmployeeImports;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Crypt;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -86,7 +87,8 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $User = User::findOrFail($id);
+        $idUser = Crypt::decryptString($id);
+        $User = User::findOrFail($idUser);
 
         return view('master.users.edit', compact('User'));
     }

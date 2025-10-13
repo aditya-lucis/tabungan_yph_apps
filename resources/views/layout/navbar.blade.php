@@ -82,7 +82,7 @@
                   @endswitch
                 </span>
               </div><!-- az-header-profile -->
-              <a href="{{route('users.show', auth()->user()->id)}}" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
+              <a href="{{route('users.show', Crypt::encryptString(auth()->user()->id) )}}" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
               <!-- <a href="{{route('logout')}}" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Log Out</a> -->
                <form action="{{route('logout')}}" method="POST">
                 @csrf

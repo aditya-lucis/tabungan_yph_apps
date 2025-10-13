@@ -17,7 +17,7 @@ class HomeController extends Controller
         // ----------------------------
         // SALDO PER JENJANG
         // ----------------------------
-        
+
         $transactions = Transaction::with('anak.program')
             ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
@@ -51,52 +51,31 @@ class HomeController extends Controller
             ]);
         }
 
-        // Running saldo → gabung ke format tabel lama
+        // Gabung per jenjang dan tahun
         $saldoPerJenjang = collect();
-        foreach ($semesterSaldo->groupBy('jenjang') as $jenjang => $records) {
-            $running = 0;
-            foreach ($records->sortBy(function($i){
-                return $i->tahun * 10 + ($i->semester === 'Genap' ? 1 : 2);
-            }) as $rec) {
-                $running += $rec->mutasi;
 
-                // cari existing row (tahun + jenjang)
-                $rowKey = $jenjang.'-'.$rec->tahun;
-                if (!isset($saldoPerJenjang[$rowKey])) {
-                    $saldoPerJenjang[$rowKey] = (object)[
-                        'jenjang'     => $jenjang,
-                        'tahun'       => $rec->tahun,
-                        'jumlah_anak' => 0,
-                        'semester_genap' => 0,
-                        'semester_ganjil'=> 0,
-                        'total_tahun'    => 0,
-                    ];
-                }
+        foreach ($semesterSaldo->groupBy(fn($r) => $r->jenjang.'-'.$r->tahun) as $key => $records) {
+            [$jenjang, $tahun] = explode('-', $key);
 
-                // set nilai per semester
-                if ($rec->semester === 'Genap') {
-                    $saldoPerJenjang[$rowKey]->semester_genap = $running;
-                } else {
-                    $saldoPerJenjang[$rowKey]->semester_ganjil = $running;
-                }
+            $genap  = $records->where('semester', 'Genap')->sum('mutasi');
+            $ganjil = $records->where('semester', 'Ganjil')->sum('mutasi');
+            $jumlahAnak = $records->pluck('jumlah_anak')->max();
 
-                // jumlah anak ambil max (bukan akumulasi)
-                $saldoPerJenjang[$rowKey]->jumlah_anak = max(
-                    $saldoPerJenjang[$rowKey]->jumlah_anak,
-                    $rec->jumlah_anak
-                );
-
-                // total tahun = saldo akhir semester ganjil
-                $saldoPerJenjang[$rowKey]->total_tahun = $running;
-            }
+            $saldoPerJenjang->push((object)[
+                'jenjang'         => $jenjang,
+                'tahun'           => (int)$tahun,
+                'jumlah_anak'     => $jumlahAnak,
+                'semester_genap'  => $genap,
+                'semester_ganjil' => $ganjil,
+                'total_tahun'     => $genap + $ganjil,
+            ]);
         }
 
-        // urutkan sesuai order jenjang
+        // Urutkan sesuai jenjang
         $order = ['SD','SMP','SMA','Perguruan Tinggi'];
-        $saldoPerJenjang = collect($saldoPerJenjang)->sortBy(function($item) use ($order) {
-            return array_search($item->jenjang,$order).'-'.$item->tahun;
+        $saldoPerJenjang = $saldoPerJenjang->sortBy(function($item) use ($order) {
+            return array_search($item->jenjang, $order).'-'.$item->tahun;
         })->values();
-
 
         // ----------------------------
         // SEMESTER DATA

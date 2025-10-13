@@ -60,23 +60,24 @@
 @endsection
 
 @section('content')
-<div class="chart-container">
-    <!-- Chart 1 -->
-    <div class="chart-card">
-        <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
-                background:#eaf1ff; padding:6px 12px; border-radius:6px;">Total Anak Per Jenjang Pendidikan</h3>
-        <div style="height:300px; width:300px; margin:auto;">
-            <canvas id="programChart"></canvas>
-        </div>
-        <div style="margin-top:10px; text-align:center; font-weight:600;">
-            Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
-        </div>
-    </div>
-    
-    <!-- Chart Card -->
-     <div class="chart-card">
+    <div class="chart-container">
+        <!-- Chart 1 -->
+        <div class="chart-card">
             <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
-                background:#eaf1ff; padding:6px 12px; border-radius:6px;">
+                    background:#eaf1ff; padding:6px 12px; border-radius:6px;">Total Anak Per Jenjang Pendidikan</h3>
+
+            <div style="height:300px; width:300px; margin:auto;">
+                <canvas id="programChart"></canvas>
+            </div>
+            <div style="text-align:center; color:#002776;">
+                Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
+            </div>
+        </div>
+        
+        <!-- Chart Card -->
+        <div class="chart-card">
+            <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
+                    background:#eaf1ff; padding:6px 12px; border-radius:6px;">
                 <b>Total Anak Per Company</b>
             </h3>
             <div style="height:300px; width:300px; margin:auto;">
@@ -92,52 +93,52 @@
                 Total Anak Keseluruhan: <b>{{ $companychild->sum('total_anak_perusahaan') }}</b>
             </h4>
         </div>
-</div>
-<br>
+    </div>
+    <br>
 
-<div class="table-card table-responsive">
-    <h3>Saldo Per Jenjang Pendidikan</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Jenjang Pendidikan</th>
-                <th>Tahun</th>
-                <th>Jumlah Anak</th>
-                <th>Semester Genap</th>
-                <th>Semester Ganjil</th>
-                <th>Total Per Tahun</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $totalGenap = 0;
-                $totalGanjil = 0;
-                $totalAkhir = 0;
-            @endphp
-            @foreach ($saldoPerJenjang as $row)
+    <div class="table-card table-responsive">
+        <h3>Saldo Per Jenjang Pendidikan</h3>
+        <table class="table table-bordered">
+            <thead>
                 <tr>
-                    <td>{{ $row->jenjang }}</td>
-                    <td>{{ $row->tahun }}</td>
-                    <td>{{ $row->jumlah_anak }}</td>
-                    <td>Rp {{ number_format($row->semester_genap, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->semester_ganjil, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($row->total_tahun, 0, ',', '.') }}</td>
+                    <th>Jenjang Pendidikan</th>
+                    <th>Tahun</th>
+                    <th>Jumlah Anak</th>
+                    <th>Semester Genap</th>
+                    <th>Semester Ganjil</th>
+                    <th>Total Per Tahun</th>
                 </tr>
+            </thead>
+            <tbody>
                 @php
-                    $totalGenap += $row->semester_genap;
-                    $totalGanjil += $row->semester_ganjil;
-                    $totalAkhir += $row->total_tahun;
+                    $totalGenap = 0;
+                    $totalGanjil = 0;
+                    $totalAkhir = 0;
                 @endphp
-            @endforeach
-            <tr>
-                <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
-                <td><strong>Rp {{ number_format($totalGenap, 0, ',', '.') }}</strong></td>
-                <td><strong>Rp {{ number_format($totalGanjil, 0, ',', '.') }}</strong></td>
-                <td><strong>Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                @foreach ($saldoPerJenjang as $row)
+                    <tr>
+                        <td>{{ $row->jenjang }}</td>
+                        <td>{{ $row->tahun }}</td>
+                        <td>{{ $row->jumlah_anak }}</td>
+                        <td>Rp {{ number_format($row->semester_genap, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($row->semester_ganjil, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($row->total_tahun, 0, ',', '.') }}</td>
+                    </tr>
+                    @php
+                        $totalGenap += $row->semester_genap;
+                        $totalGanjil += $row->semester_ganjil;
+                        $totalAkhir += $row->total_tahun;
+                    @endphp
+                @endforeach
+                <tr>
+                    <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
+                    <td><strong>Rp {{ number_format($totalGenap, 0, ',', '.') }}</strong></td>
+                    <td><strong>Rp {{ number_format($totalGanjil, 0, ',', '.') }}</strong></td>
+                    <td><strong>Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <br>
     @php
@@ -310,76 +311,126 @@ $(document).ready(function() {
 </script>
 <script>
     // === Chart 1: Program ===
+
+    // Ambil data dari Laravel
+    const levels = {!! json_encode($programAll->pluck('level')) !!};
+    const totalall = {!! json_encode($programAll->pluck('anak_dengan_transaksi_count')) !!};
+
+    // Hitung total semua anak
+    const totalAnak = totalall.reduce((a, b) => a + b, 0);
+
+    // Buat label baru dengan persentase
+    const labelsWithPercent = levels.map((level, i) => {
+        const percent = totalAnak > 0 ? ((totalall[i] / totalAnak) * 100).toFixed(1) : 0;
+        return `${level} = ${percent}%`;
+    });
+
+    // Buat chart
     new Chart(document.getElementById('programChart'), {
         type: 'pie',
         data: {
-            labels: {!! json_encode($programAll->pluck('level')) !!},
+            labels: labelsWithPercent,
             datasets: [{
-                data: {!! json_encode($programAll->pluck('anak_dengan_transaksi_count')) !!},
+                data: totalall,
                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0']
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } }
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = levels[context.dataIndex];
+                            const value = totalall[context.dataIndex];
+                            const percent = totalAnak > 0 ? ((value / totalAnak) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} anak (${percent}%)`;
+                        }
+                    }
+                }
+            }
         }
     });
 
+
     // === Chart 2: Company ===
+
     // Buat warna otomatis sesuai jumlah data
     const generateColors = (n) => {
-    const colors = [];
-    for (let i = 0; i < n; i++) {
-        const hue = (i * 37) % 360; // variasi warna tetap konsisten
-        colors.push(`hsl(${hue}, 70%, 60%)`);
-    }
-    return colors;
+        const colors = [];
+        for (let i = 0; i < n; i++) {
+            const hue = (i * 37) % 360; // variasi warna tetap konsisten
+            colors.push(`hsl(${hue}, 70%, 60%)`);
+        }
+        return colors;
     };
 
     const ctx = document.getElementById('chartCompany').getContext('2d');
-    const names = {!! json_encode($companychild->pluck('name')) !!};
-    const totals = {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!};
+    let names = {!! json_encode($companychild->pluck('name')) !!};
+    let totals = {!! json_encode($companychild->pluck('total_anak_perusahaan')) !!};
+
+    // 🔹 Urutkan data berdasarkan total_anak_perusahaan (descending)
+    let combined = names.map((name, i) => ({
+        name,
+        total: totals[i]
+    }));
+    combined.sort((a, b) => b.total - a.total);
+
+    // Update kembali array setelah diurutkan
+    names = combined.map(item => item.name);
+    totals = combined.map(item => item.total);
+
     const colors = generateColors(names.length); // warna otomatis sebanyak jumlah perusahaan
 
+    // === Chart.js ===
     const chart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: names,
-        datasets: [{
-        data: totals,
-        backgroundColor: colors,
-        borderWidth: 1
-        }]
-    },
-    options: {
-        plugins: {
-        legend: { display: false },
-        tooltip: {
-            callbacks: {
-            label: function(context) {
-                return context.label + ' = ' + context.formattedValue;
+        type: 'pie',
+        data: {
+                labels: names,
+                datasets: [{
+                data: totals,
+                backgroundColor: colors,
+                borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                    label: function (context) {
+                        return context.label + ' = ' + context.formattedValue;
+                    }
+                    }
+                }
+                }
             }
-            }
-        }
-        }
-    }
     });
 
-    // Legend custom di luar canvas
+    // === Custom Legend ===
     const legendContainer = document.getElementById('chartLegend');
+    legendContainer.innerHTML = ''; // pastikan kosong dulu
+
     names.forEach((name, i) => {
-    const color = colors[i];
-    const total = totals[i];
-    const item = document.createElement('div');
-    item.style.display = 'flex';
-    item.style.alignItems = 'center';
-    item.style.marginBottom = '6px';
-    item.innerHTML = `
-        <div style="width:14px; height:14px; background:${color}; border-radius:3px; margin-right:8px;"></div>
-        <span>${name} = <b>${total}</b></span>
-    `;
-    legendContainer.appendChild(item);
+        const color = colors[i];
+        const total = totals[i];
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.marginBottom = '6px';
+        item.innerHTML = `
+            <div style="width:14px; height:14px; background:${color}; border-radius:3px; margin-right:8px;"></div>
+            <span>${name} = <b>${total}</b></span>
+        `;
+        legendContainer.appendChild(item);
     });
 
 </script>
