@@ -114,10 +114,11 @@
                     $totalGenap = 0;
                     $totalGanjil = 0;
                     $totalAkhir = 0;
+                    $graduate = '';
                 @endphp
                 @foreach ($saldoPerJenjang as $row)
                     <tr>
-                        <td>{{ $row->jenjang }}</td>
+                        <td>{{ $graduate != $row->jenjang ? $row->jenjang : '' }}</td>
                         <td>{{ $row->tahun }}</td>
                         <td>{{ $row->jumlah_anak }}</td>
                         <td>Rp {{ number_format($row->semester_genap, 0, ',', '.') }}</td>
@@ -128,6 +129,7 @@
                         $totalGenap += $row->semester_genap;
                         $totalGanjil += $row->semester_ganjil;
                         $totalAkhir += $row->total_tahun;
+                        $graduate = $row->jenjang;
                     @endphp
                 @endforeach
                 <tr>
