@@ -22,7 +22,7 @@ class HomeController extends Controller
             ->join('data_anaks', 'transactions.id_anak', '=', 'data_anaks.id')
             ->join('employees', 'data_anaks.id_karyawan', '=', 'employees.id')
             ->join('programs', 'data_anaks.id_program', '=', 'programs.id')
-            ->where('employees.isactive', true)
+            ->where('employees.isactive', 1)
             ->select(
                 'programs.level as jenjang',
                 'data_anaks.id as id_anak',
@@ -36,7 +36,8 @@ class HomeController extends Controller
         $semesterGrouped = $transactions->groupBy(function ($item) {
             $tahun = Carbon::parse($item->created_at)->year;
             $semester = Carbon::parse($item->created_at)->month <= 6 ? 'Genap' : 'Ganjil';
-            return $item->jenjang . '-' . $tahun . '-' . $semester;
+            $jenjang = strtoupper(trim($item->jenjang));
+            return $jenjang . '-' . $tahun . '-' . $semester;
         });
 
         // Hitung mutasi per semester
