@@ -60,4 +60,8 @@ class User extends Authenticatable
     public function reqapproval() : HasMany {
         return $this->hasMany(ReqApproval::class, 'approve_by_id', 'id');
     }
+    
+    public function loghistorycredit() : HasMany {
+        return $this->hasMany(LogHistorySemesterCredit::class, 'id_user', 'id');
+    }
 }

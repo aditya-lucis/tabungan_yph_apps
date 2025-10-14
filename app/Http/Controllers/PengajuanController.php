@@ -22,6 +22,7 @@ use App\Notifications\FirstApproval;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SaldoAnakFormatExport;
+use App\Models\LogHistorySemesterCredit;
 use Yajra\DataTables\Facades\DataTables;
 use App\Notifications\NotifAddCreditScore;
 use App\Notifications\NotifReqApprovalCreated;
@@ -395,6 +396,7 @@ class PengajuanController extends Controller
         $now = Carbon::now();
         $tahun = $now->year;
         $bulan = $now->month;
+        $totalamount = 0;
 
         $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
         $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
@@ -418,10 +420,18 @@ class PengajuanController extends Controller
                 'alert' => false
             ];
 
+            $totalamount +=$anak->program->total;
+
             // $toEmail = $user->email;
 
             // Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
+
+        LogHistorySemesterCredit::create([
+            'description' => $keteranganSemester,
+            'totalamount' => $totalamount,
+            'id_user' => Auth::user()->id
+        ]);
 
         return back()->with('success', 'Transaksi per semester berhasil dibuat.');
     }
