@@ -36,8 +36,7 @@ class HomeController extends Controller
         $semesterGrouped = $transactions->groupBy(function ($item) {
             $tahun = Carbon::parse($item->created_at)->year;
             $semester = Carbon::parse($item->created_at)->month <= 6 ? 'Genap' : 'Ganjil';
-            $jenjang = strtoupper(trim($item->jenjang));
-            return $jenjang . '-' . $tahun . '-' . $semester;
+            return $item->jenjang . '-' . $tahun . '-' . $semester;
         });
 
         // Hitung mutasi per semester
