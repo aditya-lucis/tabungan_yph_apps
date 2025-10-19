@@ -182,12 +182,17 @@
                     <div class="row row-xs">
                         <div class="col-md-6">
                             <label for="jenjang">Jenjang Pendidikan</label>
-                            <select name="id_program" id="id_program" class="form-control">
-                                <option value="">Pilih Jenjang Pendidikan</option>
-                                @foreach($program as $prog)
-                                    <option value="{{ $prog->id }}">{{ $prog->level }}</option>
-                                @endforeach
-                            </select>
+                            @if (auth()->user()->role != 'krw')
+                                <select name="id_program" id="id_program" class="form-control">
+                                    <option value="">Pilih Jenjang Pendidikan</option>
+                                    @foreach($program as $prog)
+                                        <option value="{{ $prog->id }}">{{ $prog->level }}</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="text" name="text_program" id="text_program" class="form-control" placeholder="Jenjang Pendidikan" readonly>
+                                <input type="hidden" name="id_program" id="id_program">
+                            @endif
                         </div>
                         <div class="col-md-6">
                             <label>FC KTP Karyawan</label>
@@ -340,13 +345,18 @@ $(document).ready(function(){
             url: '/get/pengajuan/' + anakId,
             type: "GET",
             success: function(response) {
-                $('#idanak').val(response.id)
-                $('#namaanak').val(response.nama)
-                $('#namasekolah').val(response.nama_sekolah)
-                $('#tempatlahir').val(response.tempat_lahir)
-                $('#id_program').val(response.id_program);
+                $('#idanak').val(response.anakData.id)
+                $('#namaanak').val(response.anakData.nama)
+                $('#namasekolah').val(response.anakData.nama_sekolah)
+                $('#tempatlahir').val(response.anakData.tempat_lahir)
+                $('#id_program').val(response.anakData.id_program);
+
+                if (response.user_role = 'krw') {
+                    $('#text_program').val(response.anakData.program.level);   
+                }
+
                 // Format ulang tanggal sebelum ditampilkan di datepicker
-                let tgl_lahir = new Date(response.tgl_lahir);
+                let tgl_lahir = new Date(response.anakData.tgl_lahir);
                 let tgl_lahirfix = $.datepicker.formatDate('mm/dd/yy', tgl_lahir);
                 $('#tgllahir').val(tgl_lahirfix);
                 // Path untuk folder upload
@@ -360,10 +370,10 @@ $(document).ready(function(){
                     }
                 }
 
-                setDownloadLink("download_surat_sekolah", response.surat_sekolah);
-                setDownloadLink("download_fc_ktp", response.fc_ktp);
-                setDownloadLink("download_fc_raport", response.fc_raport);
-                setDownloadLink("download_fc_rek_skolah", response.fc_rek_sekolah);
+                setDownloadLink("download_surat_sekolah", response.anakData.surat_sekolah);
+                setDownloadLink("download_fc_ktp", response.anakData.fc_ktp);
+                setDownloadLink("download_fc_raport", response.anakData.fc_raport);
+                setDownloadLink("download_fc_rek_skolah", response.anakData.fc_rek_sekolah);
 
                 function formatTanggal(dateString) {
                     let date = new Date(dateString);
@@ -376,14 +386,14 @@ $(document).ready(function(){
 
                 $('#tablelog tbody').empty();
                 // Periksa apakah ada transaksi
-                if (response.reqpproval.length > 0) {
+                if (response.anakData.reqpproval.length > 0) {
 
                     // Urutkan berdasarkan created_at desc
-                    response.reqpproval.sort(function(a, b) {
+                    response.anakData.reqpproval.sort(function(a, b) {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
 
-                    $.each(response.reqpproval, function (index, reqpproval){
+                    $.each(response.anakData.reqpproval, function (index, reqpproval){
 
                         let statusText = '';
                         let statusClass = '';
@@ -600,8 +610,6 @@ $(document).ready(function(){
 
     // edit data anak
     $(document).on("submit", "#form-edit", function (e) {
-        e.preventDefault(); // Mencegah reload halaman
-
         let formData = new FormData(this); // Ambil semua data form, termasuk file
 
         $.ajax({
@@ -616,7 +624,7 @@ $(document).ready(function(){
                         title: "Berhasil!",
                         text: response.message,
                         icon: "success",
-                        timer: 2000,
+                        timer: 8000,
                         showConfirmButton: false
                     });
 

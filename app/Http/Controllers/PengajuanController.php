@@ -254,7 +254,13 @@ class PengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
         }
 
-        return response()->json($anakData);
+        $user = auth()->user();
+
+        return response()->json([
+            'success' => true,
+            'anakData' => $anakData,
+            'user_role' => $user->role ?? null
+        ]);
     }
     
     public function updatebalance(Request $request, string $id){
