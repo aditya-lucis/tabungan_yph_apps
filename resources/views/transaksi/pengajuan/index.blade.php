@@ -399,12 +399,12 @@
             url: "/get/pengajuan/" + id,
             type: 'GET',
             success: function (response) {
-                $('#namaanak').text(response.nama);
-                $('#nama_anak').val(response.nama)
-                $('#namasekolah').val(response.nama_sekolah)
-                $('#tempatlahir').val(response.tempat_lahir)
+                $('#namaanak').text(response.anakData.nama);
+                $('#nama_anak').val(response.anakData.nama)
+                $('#namasekolah').val(response.anakData.nama_sekolah)
+                $('#tempatlahir').val(response.anakData.tempat_lahir)
                 // Format ulang tanggal sebelum ditampilkan di datepicker
-                let formattedDate = $.datepicker.formatDate('dd-mm-yy', new Date(response.tgl_lahir));
+                let formattedDate = $.datepicker.formatDate('dd-mm-yy', new Date(response.anakData.tgl_lahir));
                 $('#tgllahir').val(formattedDate);  // Isi input field
                 $('#tgllahir').datepicker("setDate", formattedDate); // Set tanggal ke datepicker
                 let basePath = "/upload/";
@@ -431,22 +431,22 @@
                 }
 
                 // Set file untuk masing-masing dokumen
-                displayFile(response.surat_sekolah, "#file_surat", "#link_surat");
-                displayFile(response.fc_ktp, "#file_fcktp", "#link_fcktp");
-                displayFile(response.fc_raport, "#file_raport", "#link_raport");
-                displayFile(response.fc_rek_sekolah, "#file_rekening", "#link_rekening");
+                displayFile(response.anakData.surat_sekolah, "#file_surat", "#link_surat");
+                displayFile(response.anakData.fc_ktp, "#file_fcktp", "#link_fcktp");
+                displayFile(response.anakData.fc_raport, "#file_raport", "#link_raport");
+                displayFile(response.anakData.fc_rek_sekolah, "#file_rekening", "#link_rekening");
 
 
                 // Bersihkan tabel saldo sebelum menambahkan data baru
                 $('#tablesaldo tbody').empty();
 
-                if (response.transaction.length > 0) {
+                if (response.anakData.transaction.length > 0) {
 
-                    response.transaction.sort(function(a, b) {
+                    response.anakData.transaction.sort(function(a, b) {
                         return new Date(a.created_at) - new Date(b.created_at);
                     });
 
-                    $.each(response.transaction, function (index, transaction) {
+                    $.each(response.anakData.transaction, function (index, transaction) {
                         $('#tablesaldo tbody').append(`
                             <tr>
                                 <td class="text-right">${transaction.previous_balance.toLocaleString()}</td>
@@ -470,14 +470,14 @@
 
                 let statusText = ''
 
-                if (response.reqpproval.length > 0) {
+                if (response.anakData.reqpproval.length > 0) {
 
                     // Urutkan berdasarkan created_at desc
-                    response.reqpproval.sort(function(a, b) {
+                    response.anakData.reqpproval.sort(function(a, b) {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
 
-                    $.each(response.reqpproval, function (index, reqpproval) {
+                    $.each(response.anakData.reqpproval, function (index, reqpproval) {
                         let typeText = '';
                         let statusText = '';
                         let statusClass = '';
