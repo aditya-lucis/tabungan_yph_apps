@@ -32,6 +32,7 @@ class DataAnak extends Model
     public function karyawan() : BelongsTo {
         return $this->belongsTo(Employee::class, 'id_karyawan', 'id');
     }
+    
     public function program() : BelongsTo {
         return $this->belongsTo(Program::class, 'id_program', 'id');
     }

@@ -553,8 +553,8 @@
             type: 'GET',
             success: function (response){
                 $('#id_anak').val(id)
-                $('#nominal_input').val(response.program.total.toLocaleString())  
-                $('#namechild').text(response.nama)
+                $('#nominal_input').val(response.anakData.program.total.toLocaleString())  
+                $('#namechild').text(response.anakData.nama)
                 
                 var today = new Date()
                 var month = today.getMonth() + 1
