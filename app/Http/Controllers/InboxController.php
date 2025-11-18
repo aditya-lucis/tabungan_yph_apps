@@ -163,4 +163,15 @@ class InboxController extends Controller
         return Excel::download(new ReqApprovalExport($start, $end), 'approval-export.xlsx');
     }
 
+    public function loghistory($id)
+    {
+        $data = LogApprovalHistory::where('id_req_approval', $id)->orderBy('created_at', 'desc')->get();
+
+        if (!$data) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
+        }
+
+        return response()->json($data);
+    }
+
 }

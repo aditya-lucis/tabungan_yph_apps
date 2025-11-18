@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tabungan/inbox/export', [InboxController::class, 'export'])->name('approval.export');
     Route::get('/tabungan/inbox/{id}', [InboxController::class, 'edit'])->name('tabungan.inbox.edit');
     Route::put('/tabungan/inbox/update/{id}', [InboxController::class, 'update'])->name('tabungan.inbox.update');
+    Route::get('/tabungan/loghistory/{id}', [InboxController::class, 'loghistory'])->name('tabungan.inbox.loghistory');
 
     // =======================
     // Company / Program / Users

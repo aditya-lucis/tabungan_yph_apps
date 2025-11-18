@@ -254,6 +254,21 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            <div class="modal-body">
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table id="tablogsavings" class="table table-bordered">
+                        <thead class="thead-dark" style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <td>No. </td>
+                                <td>Status</td>
+                                <td>Descript</td>
+                                <td>Date</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -367,8 +382,63 @@ $(document).ready(function () {
     // tombol log history approval
     $('body').on('click', '#see-log', function () {
         var id = $(this).data('id');
-        // console.log(id)
-        // $('#seeLogApproveHistory').modal('show');  
+        $.ajax({
+            url: `/tabungan/loghistory/${id}`,
+            type: 'GET',
+            success: function (response) {
+                $('#seeLogApproveHistory').modal('show')
+                $('#tablogsavings tbody').empty()
+
+                if (response.length > 0) {
+                    $.each(response, function (index, approval) {
+                        let statusText = '';
+                        let statusClass = '';
+
+                        switch (approval.status) {
+                            case 1:
+                                statusText = 'Approved'
+                                statusClass = 'badge bg-success text-white'
+                                break
+                            case 2:
+                                statusText = 'Rejected';
+                                statusClass = 'badge bg-danger text-white'
+                                break;
+                            case 3:
+                                statusText = 'Awaiting';
+                                statusClass = 'badge bg-info text-white'
+                                break;
+                            default:
+                                statusText = 'Unknown';
+                                statusClass = 'badge bg-secondary text-white'
+                                break
+                        }
+
+                        let formattedDate = new Date(approval.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+
+                        $('#tablogsavings tbody').append(`
+                            <tr>
+                                <td class="text-center">${index + 1}</td>
+                                <td><span class="badge ${statusClass} p-2 rounded">${statusText}</span></td>
+                                <td>${approval.descript ?? '-'}</td>
+                                <td>${formattedDate}</td>
+                            </tr>
+                        `)
+                    })
+                }else{
+                    $('#tablogsavings tbody').append(`
+                        <tr>
+                            <td colspan="4" class="text-center">No Record</td>
+                        </tr>
+                    `)
+                }
+            }
+        })
     })
 
     // tombol approval
