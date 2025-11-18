@@ -496,7 +496,7 @@ $(document).ready(function(){
                 <!-- ✅ Area Rincian Dinamis -->
                 <div class="form-row mt-3">
                     <div class="form-group col-md-12">
-                        <label>Rincian Pengajuan Dana (maksimal 5)</label>
+                        <label>Rincian Pengajuan Dana</label>
                         <div id="rincianWrapper"></div>
 
                         <button type="button" id="addRincianBtn" class="btn btn-sm btn-success mt-2">
