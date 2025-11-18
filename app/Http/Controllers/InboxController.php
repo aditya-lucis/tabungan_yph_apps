@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\ReqApprovalExport;
 use App\Mail\CustomEmail;
 use App\Models\DataAnak;
+use App\Models\LogApprovalHistory;
 use App\Models\ReqApproval;
 use App\Models\Transaction;
 use App\Notifications\NotifReqApprovalUpdated;
@@ -60,7 +61,7 @@ class InboxController extends Controller
     }
 
     public function edit($id) {
-        $query = ReqApproval::with(['anak.karyawan.company','anak', 'anak.karyawan', 'anak.program', 'anak.transaction', 'anak.latestTransaction', 'user', 'reqpprovaldetail'])->find($id);
+        $query = ReqApproval::with(['anak.karyawan.company','anak', 'anak.karyawan', 'anak.program', 'anak.transaction', 'anak.latestTransaction', 'user', 'reqpprovaldetail','latestreqpprovallog'])->find($id);
 
         if (!$query) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
@@ -97,6 +98,26 @@ class InboxController extends Controller
             'nominalapprove' => $request->nominal_input,
             'approve_by_id' => $user->id,
         ]);
+
+        if ($request->status == 1) {
+            LogApprovalHistory::create([
+                'id_req_approval' => $query->id,
+                'descript' => 'Dokumen Telah Disetujui',
+                'status' => $request->status
+            ]);
+        }elseif ($request->status == 2) {
+            LogApprovalHistory::create([
+                'id_req_approval' => $query->id,
+                'descript' => 'Dokumen Ditolak',
+                'status' => $request->status
+            ]);
+        }elseif ($request->status == 3) {
+            LogApprovalHistory::create([
+                'id_req_approval' => $query->id,
+                'descript' => $request->loghistorysel,
+                'status' => $request->status
+            ]);
+        }
 
         $pengaju = $anakData->karyawan->user;
 

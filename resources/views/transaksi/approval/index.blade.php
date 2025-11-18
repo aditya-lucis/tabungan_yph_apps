@@ -201,6 +201,19 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row" id="loghistory" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="loghistorysel" class="form-label">Status Dokumen</label>
+                                    <select name="loghistorysel" id="loghistorysel" class="form-control">
+                                        <option value="">Select</option>
+                                        <option value="On Proses Verifikasi Dokumen">On Proses Verifikasi Dokumen</option>
+                                        <option value="Waiting Approval Dewan Pengawas">Waiting Approval Dewan Pengawas</option>
+                                        <option value="Waiting Approval Dewan Pembina">Waiting Approval Dewan Pembina</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row" id="nominal" style="display: none;">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -227,6 +240,19 @@
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" id="submitBtn" class="btn btn-primary">Update</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="seeLogApproveHistory" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Log History Status Pengajuan Dokumen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
         </div>
     </div>
@@ -317,14 +343,15 @@ $(document).ready(function () {
                 }
             },
             { data: 'status', name: 'status', className: 'text-center',
-                render: function (data) {
+                render: function (data, type, row) {
                     let statusText = '', statusClass = '';
                     switch (data) {
                         case 0: statusText = 'New'; statusClass = 'badge-primary'; break;
                         case 1: statusText = 'Approved'; statusClass = 'badge-success'; break;
                         case 2: statusText = 'Rejected'; statusClass = 'badge-danger'; break;
+                        case 3: statusText = 'Awaiting'; statusClass = 'badge-info'; break;
                     }
-                    return `<span class="badge ${statusClass} p-2 rounded">${statusText}</span>`;
+                    return `<a id="see-log" data-id="${row.id}" class="badge ${statusClass} p-2 rounded">${statusText}</a>`;
                 }
             },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '10%' }
@@ -337,6 +364,12 @@ $(document).ready(function () {
     });
 });
 
+    // tombol log history approval
+    $('body').on('click', '#see-log', function () {
+        var id = $(this).data('id');
+        // console.log(id)
+        // $('#seeLogApproveHistory').modal('show');  
+    })
 
     // tombol approval
     $('body').on('click', '#edit', function () {
@@ -461,13 +494,23 @@ $(document).ready(function () {
                     if (userRole === 'krw' && userEmployeeId) {
                         $('#submitBtn').hide().prop('disabled', true);
                         $('#status_approval').prop('disabled', true);
+                        
+                        if (response.status == 3) {
+                            $("#loghistorysel").prop('disabled', true)
+                        }
+
                     } else {
                         // Kalau bukan krw, cek status
-                        if (response.status != 0) {
-                            $('#submitBtn').hide();
-                        } else {
+                        if (response.status == 0 || response.status == 3) {
                             $('#submitBtn').show().prop('disabled', false);
+                        } else {
+                            $('#submitBtn').hide();
                         }
+                    }
+
+                    if (response.status == 3) {   
+                        $("#loghistory").show()
+                        $("#loghistorysel").val(response.latestreqpprovallog.descript)
                     }
 
                     if (response.status == 1) {
@@ -505,15 +548,20 @@ $(document).ready(function () {
             let nominalDiv = $("#nominal");
             let nominalInput = $("#nominal_input");
             let noteInput = $("#note_input");
+            let loghistory = $("#loghistory");
 
             if (status === "1") { // Jika pilih "Approve"
                 nominalDiv.show();
+                loghistory.hide()
                 nominalInput.prop("required", true);
                 noteInput.prop("required", true);
-            } else { // Jika pilih "Reject" atau lainnya
-                nominalDiv.hide();
-                nominalInput.prop("required", false).val(""); // Kosongkan field
-                noteInput.prop("required", false).val("");
+            }else if (status === "3"){
+                loghistory.show()
+            }else { // Jika pilih "Reject" atau lainnya
+                nominalDiv.hide()
+                loghistory.hide()
+                nominalInput.prop("required", false).val("") // Kosongkan field
+                noteInput.prop("required", false).val("")
             }
         });
     });
@@ -542,19 +590,26 @@ $(document).ready(function () {
         var note = $('#reason').val();
         var nominal = cleanNumber($('#nominal_input').val());
         var notes = $('#note_input').val();
+
+        var dataToSend = {
+            _token        : "{{ csrf_token() }}",
+            _method       : "PUT",
+            id_anak       : anak_id,
+            id_req        : req_id,
+            status        : status_approve,
+            notes         : note,
+            nominal_input : nominal,
+            note_input    : notes
+        };
+
+        if ($('#loghistorysel').length) {
+            dataToSend.loghistorysel = $('#loghistorysel').val()
+        }
+
         $.ajax({
             url: "/tabungan/inbox/update/" + req_id,
             type: "PUT", // Gunakan POST
-            data: {
-                _token          : "{{ csrf_token() }}",
-                _method         : "PUT", // Laravel mengenali ini sebagai PUT
-                id_anak         : anak_id,
-                id_req          : req_id,
-                status          : status_approve,
-                notes           : note,
-                nominal_input   : nominal,
-                note_input      : notes
-            },
+            data: dataToSend,
             success: function(response) {
                 Swal.fire({
                     title: "Berhasil!",

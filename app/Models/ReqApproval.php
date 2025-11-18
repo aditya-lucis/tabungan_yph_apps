@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ReqApproval extends Model
 {
@@ -30,5 +31,9 @@ class ReqApproval extends Model
     
     public function reqpprovallog (): HasMany{
         return $this->hasMany(LogApprovalHistory::class, 'id_req_approval', 'id');
+    }
+    
+    public function latestreqpprovallog (): HasOne{
+        return $this->hasOne(LogApprovalHistory::class, 'id_req_approval', 'id')->latestOfMany();
     }
 }
