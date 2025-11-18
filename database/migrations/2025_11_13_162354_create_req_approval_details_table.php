@@ -17,7 +17,11 @@ return new class extends Migration
             $table->string('rincian');
             $table->integer('nominal');
 
-            $table->foreign('id_req_approval')->on('req_approvals')->references('id');
+            $table->foreign('id_req_approval')
+                        ->references('id')
+                        ->on('req_approvals')
+                        ->onDelete('cascade');
+                        
             $table->timestamps();
         });
     }
