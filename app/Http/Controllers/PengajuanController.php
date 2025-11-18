@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SaldoAnakFormatExport;
 use App\Models\LogHistorySemesterCredit;
+use App\Models\ReqApprovalDetail;
 use Yajra\DataTables\Facades\DataTables;
 use App\Notifications\NotifAddCreditScore;
 use App\Notifications\NotifReqApprovalCreated;
@@ -191,6 +192,7 @@ class PengajuanController extends Controller
         $idanak = $request->id_anak;
         $anakData = DataAnak::find($idanak);
         $filepencairanName = "";
+        $filefcraportName = "";
 
         $final_balance = $anakData->latestTransaction->final_balance;
 
@@ -202,6 +204,12 @@ class PengajuanController extends Controller
             $filepencairan = $request->file('filepencairan');
             $filepencairanName = 'File_Pencairan_' . uniqid() . '.' . $filepencairan->getClientOriginalExtension();
             $filepencairan->move(public_path('upload'), $filepencairanName);
+        }
+        
+        if ($request->hasFile('filefcraport')) {
+            $filefcraport = $request->file('filefcraport');
+            $filefcraportName = 'fc_raport_' . uniqid() . '.' . $filefcraport->getClientOriginalExtension();
+            $filefcraport->move(public_path('upload'), $filefcraportName);
         }
 
         $req = ReqApproval::create([
@@ -215,6 +223,25 @@ class PengajuanController extends Controller
                 'accountbankname' => $request->accountbankname,
                 'isreimburst' => $request->isreimburst
             ]);
+
+        $rincianList = $request->input('rincian', []);
+        $nominalList = $request->input('nominal_rincian', []);
+
+        foreach ($rincianList as $i => $deskripsi) {
+            if (!empty($deskripsi)) {
+                ReqApprovalDetail::create([
+                    'id_req_approval' => $req->id,
+                    'rincian' => $deskripsi,
+                    'nominal' => isset($nominalList[$i]) ? $nominalList[$i] : 0,
+                ]);
+            }
+        }
+
+        if ($filefcraportName !== "") {
+            $anakData->update([
+                'fc_raport' => $filefcraportName
+            ]);
+        }
 
         // Kirim notifikasi ke semua admin
         $admins = User::where('role', 'adm')->get();

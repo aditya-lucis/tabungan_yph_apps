@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReqApproval extends Model
 {
@@ -21,5 +22,13 @@ class ReqApproval extends Model
     }
     public function user() : BelongsTo {
         return $this->belongsTo(User::class, 'approve_by_id', 'id');
+    }
+
+    public function reqpprovaldetail (): HasMany{
+        return $this->hasMany(ReqApprovalDetail::class, 'id_req_approval', 'id');
+    }
+    
+    public function reqpprovallog (): HasMany{
+        return $this->hasMany(LogApprovalHistory::class, 'id_req_approval', 'id');
     }
 }

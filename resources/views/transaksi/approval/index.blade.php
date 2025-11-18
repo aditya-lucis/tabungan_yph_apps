@@ -116,6 +116,15 @@
                         </div>
                     </div>
                     <hr>
+                    <div class="mb-3">
+                        <div class="form-row mt-3">
+                            <div class="form-group col-md-12">
+                                <label>Rincian Pengajuan Dana</label>
+                                <div id="rincianWrapper"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
                     <!-- Tabel Saldo (Responsive) -->
                     <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                         <table id="tablesaldo" class="table table-bordered">
@@ -145,13 +154,19 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="file" class="form-label"></label>
-                                <div class="form-group">
-                                    <label class="form-label">File Dokumen Pencairan:</label>
-                                    <!-- <input type="text" name="norek" id="norek" class="form-control" readonly> -->
-                                    <label class="form-label"><a class="show-file" data-file="">Lihat File</a></label>
-                                </div>
+                            <label for="file" class="form-label"></label>
+                            <div class="form-group">
+                                <label class="form-label">File Dokumen Pencairan:</label>
+                                <label class="form-label"><a class="show-file" data-file="">Lihat File</a></label>
                             </div>
+
+                            <div class="form-group mt-3">
+                                <label class="form-label">File Fotocopy Raport:</label>
+                                <label class="form-label">
+                                    <a class="show-file-raport" target="_blank" data-file="">Lihat File</a>
+                                </label>
+                            </div>
+                        </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
@@ -176,6 +191,7 @@
                                     <option value="0">New</option>
                                     <option value="1">Approve</option>
                                     <option value="2">Reject</option>
+                                    <option value="3">Awaiting</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -343,6 +359,7 @@ $(document).ready(function () {
                 $('#reason').val(response.reason);
                 let formattedTotal = formatNumber(response.nominal);
                 $('#nominal_input').val(formattedTotal);
+                $('#rincianWrapper').empty()
 
                 if (response.norek != null && response.norek != '') {
                     $('#norek').val(response.norek);
@@ -361,16 +378,50 @@ $(document).ready(function () {
                 }else{
                     $('#accountbankname').val("Tidak ada Nama Pemilik Rekening Bank");
                 }
+                
+                if (response.reqpprovaldetail && response.reqpprovaldetail.length > 0) {
+                     response.reqpprovaldetail.forEach(function (item, index) {
+                        let formattedNominal = item.nominal.toLocaleString()
+
+                        $('#rincianWrapper').append(`
+                            <div class="form-row rincian-item mb-2">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" value="${item.rincian}" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control text-right" value="${formattedNominal}" readonly>
+                                </div>
+                            </div>
+                        `)
+                     })
+                }else{
+                    $('#rincianWrapper').append(`
+                        <p class="text-muted">Tidak ada rincian pengajuan dana.</p>
+                    `)
+                }
 
                 // Perbarui data-file pada elemen <a class="show-file">
                 if (response.file && response.file.trim() !== "") {
                     $('.show-file')
                         .attr('data-file', response.file)
                         .attr('href', "/upload/" + response.file) // Set langsung href untuk download
-                        .attr('download', response.file) // Tambahkan atribut download
+                        .attr('target', '_blank') // Tambahkan atribut download
                         .text('Download File');
                 } else {
                     $('.show-file')
+                        .attr('data-file', '')
+                        .removeAttr('href download') // Hapus href jika tidak ada file
+                        .text('File Tidak Tersedia');
+                }
+                
+                if (response.anak.fc_raport && response.anak.fc_raport.trim() !== "") {
+                    $('.show-file-raport')
+                        .attr('data-file', response.anak.fc_raport)
+                        .attr('href', "/upload/" + response.anak.fc_raport) // Set langsung href untuk download
+                        .attr('target', '_blank') // Tambahkan atribut download
+                        .text('Download File');
+                } else {
+                    $('.show-file-raport')
                         .attr('data-file', '')
                         .removeAttr('href download') // Hapus href jika tidak ada file
                         .text('File Tidak Tersedia');

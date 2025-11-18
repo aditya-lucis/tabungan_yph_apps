@@ -317,6 +317,9 @@
 
 <script>
 
+let maxRincian = 5
+let rincianCount = 0
+
 $(document).ready(function(){
     $('.fc-datepicker').datepicker({
         showOtherMonths: true,
@@ -437,6 +440,13 @@ $(document).ready(function(){
     // Ketika checkbox diklik, ubah isi modal-body
     $('#confirmCheck').on('change', function () {
         if ($(this).is(':checked')) {
+
+            // ✅ Buka Google Sheet di tab baru
+            window.open(
+                "https://docs.google.com/spreadsheets/d/1dTxMegnt86Xf2fI-dCN5CMsq9bT4_IUV/edit?gid=94923237#gid=94923237",
+                "_blank"
+            );
+
             // Ganti modal-body dengan form baru
             $('#reqApproveModal .modal-body').html(`
                 <div class="form-row">
@@ -445,10 +455,11 @@ $(document).ready(function(){
                         <input type="text" name="tujuan_pencairan" id="tujuanPencairan" class="form-control" placeholder="Tujuan Pencairan">
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="nominal">Masukan Nominal Yang Diajukan</label>
-                        <input type="text" name="nominal" id="nominal" class="form-control" placeholder="0">
+                        <label for="filefcraport">File Foto Copy Raport</label>
+                        <input type="file" name="filefcraport" id="filefcraport" class="form-control">
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="filepencairan">Dokumen Pencairan</label>
@@ -459,6 +470,7 @@ $(document).ready(function(){
                         <input type="text" name="bankname" id="bankname" class="form-control" placeholder="Nama Bank Pencairan">
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="norek">Nomor Rekening Pencairan</label>
@@ -469,17 +481,40 @@ $(document).ready(function(){
                         <input type="text" name="accountbankname" id="accountbankname" class="form-control" placeholder="Nama Rekening Pencairan">
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="isreimburst">Type Pencairan</label>
                         <select name="isreimburst" id="isreimburst" class="form-control">
-                            <option>Pilih</option>
+                            <option value="">Pilih</option>
                             <option value="0">Cash Advance</option>
                             <option value="1">Reimburse</option>
                         </select>
                     </div>
                 </div>
+
+                <!-- ✅ Area Rincian Dinamis -->
+                <div class="form-row mt-3">
+                    <div class="form-group col-md-12">
+                        <label>Rincian Pengajuan Dana (maksimal 5)</label>
+                        <div id="rincianWrapper"></div>
+
+                        <button type="button" id="addRincianBtn" class="btn btn-sm btn-success mt-2">
+                            + Tambah Rincian
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-row mt-3">
+                    <div class="form-group col-md-6">
+                        <label>Total Nominal Diajukan</label>
+                        <input type="text" name="nominal" id="nominal" class="form-control" style="text-align: right;" readonly value="0">
+                    </div>
+                </div>
             `);
+
+            rincianCount = 0
+            addRincianRow()
 
             // Terapkan format ribuan ke input nominal
             $('#nominal').on('input', function () {
@@ -577,6 +612,24 @@ $(document).ready(function(){
         if (fileInput) {
             formData.append('filepencairan', fileInput);
         }
+        
+        // Tambahkan file jika ada
+        var filefcraport = $('#filefcraport')[0].files[0];
+        if (filefcraport) {
+            formData.append('filefcraport', filefcraport);
+        }
+        
+        $('[id^=rincian]').each(function (index) {
+            let rincianVal = $(this).val() || ''; // aman dari undefined
+
+            // cari input nominal yang *berada di baris yang sama* (lebih aman)
+            let nominalInput = $(this).closest('.form-row').find('input[id^=nominalRincian]');
+            let nominalVal = nominalInput.val() ? nominalInput.val().replace(/,/g, '') : '0';
+
+            formData.append(`rincian[${index}]`, rincianVal);
+            formData.append(`nominal_rincian[${index}]`, nominalVal);
+        });
+
 
         formData.append('_token', '{{ csrf_token() }}'); // Laravel CSRF Token
 
@@ -589,11 +642,10 @@ $(document).ready(function(){
             success: function(response) {
                 if (response.success) {
                     Swal.fire({
-                        title: "Silahkan Lengkap Data Anda!!",
+                        title: "Pengajuan Pencairan Anda Berhasil!!",
                         text: response.message,
                         icon: "success"
                     }).then(() => {
-                        window.open("https://docs.google.com/spreadsheets/d/1dTxMegnt86Xf2fI-dCN5CMsq9bT4_IUV/edit?gid=94923237#gid=94923237", "_blank");
                         location.reload();
                     });
                 }
@@ -646,6 +698,90 @@ $(document).ready(function(){
             }
         });
     });
+
+    // ✅ Tombol tambah rincian
+    $(document).on('click', '#addRincianBtn', function () {
+        if (rincianCount < maxRincian) {
+            addRincianRow();
+        }
+        if (rincianCount >= maxRincian) {
+            $('#addRincianBtn').hide();
+        }
+    });
+
+    // ✅ Tombol hapus rincian
+    $(document).on('click', '[id^=removeRincianBtn]', function () {
+        const rowId = $(this).data('row'); // ambil ID baris dari data-row
+        $(`#rincianRow${rowId}`).remove();
+
+        rincianCount--;
+        renumberRincian();
+        hitungTotal();
+
+        if (rincianCount < maxRincian) {
+            $('#addRincianBtn').show();
+        }
+    });
+
+    function addRincianRow() {
+        rincianCount++;
+        let alphabet = String.fromCharCode(96 + rincianCount); // a, b, c, ...
+
+        let row = `
+            <div id="rincianRow${rincianCount}" class="form-row mb-2">
+                <div class="col-md-1 d-flex align-items-center">
+                    <strong>${alphabet}.</strong>
+                </div>
+                <div class="col-md-5">
+                    <input type="text" id="rincian${rincianCount}" name="rincian[]" class="form-control" placeholder="Rincian...">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="nominalRincian${rincianCount}" name="nominal_rincian[]" style="text-align: right;" class="form-control" placeholder="0">
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    ${rincianCount > 1 ? `<button type="button" id="removeRincianBtn${rincianCount}" data-row="${rincianCount}" class="btn btn-sm btn-danger">−</button>` : ''}
+                </div>
+            </div>
+        `;
+
+        $('#rincianWrapper').append(row);
+
+        // Format ribuan + update total
+        $(`#nominalRincian${rincianCount}`).on('input', function () {
+            this.value = formatRibuan(this.value);
+            hitungTotal();
+        });
+    }
+
+
+    // ✅ Format angka ke ribuan
+    function formatRibuan(angka) {
+        return angka
+            .replace(/\D/g, "")
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // ✅ Hitung total semua nominal
+    function hitungTotal() {
+        let total = 0;
+        $('[id^=nominalRincian]').each(function () {
+            let val = $(this).val().replace(/,/g, '');
+            if (val) total += parseInt(val);
+        });
+        $('#nominal').val(total.toLocaleString());
+    }
+
+    // ✅ Ulang urutan abjad setelah hapus
+    function renumberRincian() {
+        let rows = $('[id^=rincianRow]');
+        let idx = 1;
+        rows.each(function () {
+            let alphabet = String.fromCharCode(96 + idx);
+            $(this).find('strong').text(alphabet + '.');
+            idx++;
+        });
+        rincianCount = rows.length;
+    }
 
 </script>
 
