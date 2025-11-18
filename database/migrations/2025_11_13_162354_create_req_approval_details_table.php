@@ -16,12 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('id_req_approval');
             $table->string('rincian');
             $table->integer('nominal');
-
-            $table->foreign('id_req_approval')
-                        ->references('id')
-                        ->on('req_approvals')
-                        ->onDelete('cascade');
-                        
             $table->timestamps();
         });
     }
