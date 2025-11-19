@@ -35,6 +35,9 @@ class PengajuanController extends Controller
     public function index(Request $request){
         if ($request->ajax()) {
             $query = DataAnak::with(['karyawan', 'program', 'karyawan.company', 'reqpproval'])
+            ->whereHas('karyawan', function ($q) {
+                $q->where('isactive', true);
+            })
             ->orderBy('nama', 'ASC');
 
             return DataTables::of($query)
