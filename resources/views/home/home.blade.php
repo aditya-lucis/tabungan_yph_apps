@@ -59,7 +59,8 @@
     .sticky-header th {
         position: sticky;
         top: 0;
-        background: white;
+        background: #f8f9fa;
+        font-weight: bold;
         z-index: 10;
     }
 
