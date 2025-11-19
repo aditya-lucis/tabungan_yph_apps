@@ -98,6 +98,7 @@
 
     <div class="table-card table-responsive">
         <h3>Saldo Per Jenjang Pendidikan</h3>
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -132,14 +133,17 @@
                         $graduate = $row->jenjang;
                     @endphp
                 @endforeach
+            </tbody>
+            <tfoot class="sticky-footer">
                 <tr>
                     <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
                     <td><strong>Rp {{ number_format($totalGenap, 0, ',', '.') }}</strong></td>
                     <td><strong>Rp {{ number_format($totalGanjil, 0, ',', '.') }}</strong></td>
                     <td><strong>Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
                 </tr>
-            </tbody>
+            </tfoot>
         </table>
+        </div>
     </div>
 
     <br>
@@ -154,132 +158,139 @@
 
     <div class="table-card table-responsive">
         <h3>Saldo Per Semester</h3>
-        <table class="table table-bordered" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Perusahaan</th>
-                    <th>Program</th>
-                    <th>Tahun</th>
-                    <th>Semester</th>
-                    <th>Total Credit</th>
-                    <th>Total Debit</th>
-                    <th>Saldo Akhir</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($groupedData as $companyName => $programs)
-                    @php $showCompany = true; @endphp
-                    @foreach($programs as $programLevel => $records)
-                        @php
-                            $lastYear = null;
-                            $showProgram = true;
-                        @endphp
-
-                        @foreach($records->sortBy(function ($item) {
-                            return $item->tahun * 10 + ($item->semester === 'Semester Genap' ? 1 : 2);
-                        }) as $data)
-                            <tr>
-                                <td>{{ $showCompany ? $companyName : '' }}</td>
-
-                                {{-- Tampilkan program level hanya saat tahun baru atau pertama --}}
-                                <td>
-                                    @if ($showProgram || $lastYear !== $data->tahun)
-                                        {{ $programLevel }}
-                                    @endif
-                                </td>
-
-                                <td>{{ $data->tahun }}</td>
-                                <td>{{ $data->semester }}</td>
-                                <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
-                            </tr>
-
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+            <table class="table table-bordered" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Perusahaan</th>
+                        <th>Program</th>
+                        <th>Tahun</th>
+                        <th>Semester</th>
+                        <th>Total Credit</th>
+                        <th>Total Debit</th>
+                        <th>Saldo Akhir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($groupedData as $companyName => $programs)
+                        @php $showCompany = true; @endphp
+                        @foreach($programs as $programLevel => $records)
                             @php
-                                $showCompany = false;
-                                $showProgram = false;
-                                $lastYear = $data->tahun;
-
-                                $totalCredit += $data->total_credit;
-                                $totalDebit += $data->total_debit;
+                                $lastYear = null;
+                                $showProgram = true;
                             @endphp
+
+                            @foreach($records->sortBy(function ($item) {
+                                return $item->tahun * 10 + ($item->semester === 'Semester Genap' ? 1 : 2);
+                            }) as $data)
+                                <tr>
+                                    <td>{{ $showCompany ? $companyName : '' }}</td>
+
+                                    {{-- Tampilkan program level hanya saat tahun baru atau pertama --}}
+                                    <td>
+                                        @if ($showProgram || $lastYear !== $data->tahun)
+                                            {{ $programLevel }}
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $data->tahun }}</td>
+                                    <td>{{ $data->semester }}</td>
+                                    <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
+                                </tr>
+
+                                @php
+                                    $showCompany = false;
+                                    $showProgram = false;
+                                    $lastYear = $data->tahun;
+
+                                    $totalCredit += $data->total_credit;
+                                    $totalDebit += $data->total_debit;
+                                @endphp
+                            @endforeach
                         @endforeach
                     @endforeach
-                @endforeach
-                <tr>
-                    <td colspan="3"></td>
-                    <td><b>TOTAL</b></td>
-                    <td><b>Rp {{ number_format($totalCredit, 2, ',', '.') }}</b></td>
-                    <td><b>Rp {{ number_format($totalDebit, 2, ',', '.') }}</b></td>
-                    <td><b>Rp {{ number_format($totalCredit - $totalDebit, 2, ',', '.') }}</b></td>
-                </tr>
-            </tbody>
-        </table>
+                </tbody>
+                <tfoot class="sticky-footer">
+                    <tr>
+                        <td colspan="3"></td>
+                        <td><b>TOTAL</b></td>
+                        <td><b>Rp {{ number_format($totalCredit, 2, ',', '.') }}</b></td>
+                        <td><b>Rp {{ number_format($totalDebit, 2, ',', '.') }}</b></td>
+                        <td><b>Rp {{ number_format($totalCredit - $totalDebit, 2, ',', '.') }}</b></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 
     <br>
     <div class="table-card table-responsive">
     <h3>Saldo Per Tahun</h3>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Perusahaan</th>
-                    <th>Program</th>
-                    <th>Tahun</th>
-                    <th>Total Credit</th>
-                    <th>Total Debit</th>
-                    <th>Saldo Akhir</th>
-                </tr>
-            </thead>
-            <tbody>
-            @php
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Perusahaan</th>
+                        <th>Program</th>
+                        <th>Tahun</th>
+                        <th>Total Credit</th>
+                        <th>Total Debit</th>
+                        <th>Saldo Akhir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
 
-                $groupedYearly = $yearlyData->groupBy('company_name')->map(function ($items) {
-                    return $items->groupBy('program_level')->map(function ($subItems) {
-                        return $subItems->sortBy('tahun');
-                    });
-                });
+                        $groupedYearly = $yearlyData->groupBy('company_name')->map(function ($items) {
+                            return $items->groupBy('program_level')->map(function ($subItems) {
+                                return $subItems->sortBy('tahun');
+                            });
+                        });
 
-                $Namecompany = '';
-                $allCredit = 0;
-                $allDebit = 0;
-            @endphp
-            @foreach($groupedYearly as $companyName => $programs)
-                <tr>
-                    <td rowspan="{{ $programs->flatten()->count() }}">
-                        {{ $companyName }}
-                    </td>
-                    @php $firstProgram = true; @endphp
+                        $Namecompany = '';
+                        $allCredit = 0;
+                        $allDebit = 0;
+                    @endphp
+                    @foreach($groupedYearly as $companyName => $programs)
+                        <tr>
+                            <td rowspan="{{ $programs->flatten()->count() }}">
+                                {{ $companyName }}
+                            </td>
+                            @php $firstProgram = true; @endphp
 
-                    @foreach($programs as $level => $records)
-                        @foreach($records as $record)
-                            @if(!$firstProgram)
-                                <tr>
-                            @endif
-
-                            <td>{{ $level }}</td>
-                            <td>{{ $record->tahun }}</td>
-                            <td>Rp {{ number_format($record->total_credit, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($record->total_debit, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($record->saldo_akhir, 0, ',', '.') }}</td>
-                            </tr>
-                            @php
-                                $allCredit += $record->total_credit;
-                                $allDebit += $record->total_debit;
-                                $firstProgram = false;
-                            @endphp
-                        @endforeach
+                            @foreach($programs as $level => $records)
+                                @foreach($records as $record)
+                                    @if(!$firstProgram)
+                                        <tr>
+                                    @endif
+                                            <td>{{ $level }}</td>
+                                            <td>{{ $record->tahun }}</td>
+                                            <td>Rp {{ number_format($record->total_credit, 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($record->total_debit, 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($record->saldo_akhir, 0, ',', '.') }}</td>
+                                        </tr>
+                                    @php
+                                        $allCredit += $record->total_credit;
+                                        $allDebit += $record->total_debit;
+                                        $firstProgram = false;
+                                    @endphp
+                                @endforeach
+                            @endforeach
                     @endforeach
-            @endforeach
-            <tr>
-                <td colspan="2"></td>
-                <td><b>TOTAL</b></td>
-                <td><b>Rp {{ number_format($allCredit, 0, ',', '.') }} </b></td>
-                <td><b>Rp {{ number_format($allDebit, 0, ',', '.') }} </b></td>
-                <td><b>Rp {{ number_format($allCredit - $allDebit, 0, ',', '.') }} </b></td>
-            </tr>
-        </tbody>
-        </table>
+                </tbody>
+                <tfoot class="sticky-footer">
+                    <tr>
+                        <td colspan="2"></td>
+                        <td><b>TOTAL</b></td>
+                        <td><b>Rp {{ number_format($allCredit, 0, ',', '.') }} </b></td>
+                        <td><b>Rp {{ number_format($allDebit, 0, ',', '.') }} </b></td>
+                        <td><b>Rp {{ number_format($allCredit - $allDebit, 0, ',', '.') }} </b></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 @endsection
 
