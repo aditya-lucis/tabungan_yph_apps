@@ -21,15 +21,23 @@ class CheckEmployeeAccess
 
             // 🔒 blok akses home
             if ($routeName === 'homeindex') {
-                return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
                                  ->with('error', 'Unauthorized access.');
             }
 
             // 🔒 blok akses employee.index
             if ($routeName === 'employee.index') {
-                return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
                                  ->with('error', 'Unauthorized access.');
             }
+
+            // 🔒 blok akses pengajuan.index
+            if ($routeName === 'pengajuan.index') {
+                return redirect()->route('employee.show', [
+                    'employee' => Crypt::encryptString($user->id_employee)
+                ])->with('error', 'Unauthorized access.');
+            }
+
 
             // 🔒 cek detail employee atau pengajuan
             $encrypted = $request->route('employee') ?? $request->route('id');
@@ -38,13 +46,13 @@ class CheckEmployeeAccess
                 try {
                     $requestedId = Crypt::decryptString($encrypted);
                 } catch (\Exception $e) {
-                    return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                    return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
                                      ->with('error', 'Invalid ID.');
                 }
 
                 // jika ID tidak sesuai
                 if ((int)$requestedId !== (int)$user->id_employee) {
-                    return redirect()->route('employee.show', ['encrypted' => Crypt::encryptString($user->id_employee)])
+                    return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
                                      ->with('error', 'Unauthorized access.');
                 }
 

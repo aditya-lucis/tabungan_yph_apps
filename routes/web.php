@@ -30,7 +30,7 @@ Route::post('/login', [AuthController::class, 'store']);
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', [HomeController::class, 'index']) ->middleware('check.employee')->name('homeindex');
+    Route::get('/', [HomeController::class, 'index'])->middleware('check.employee')->name('homeindex');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -88,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
     Route::post('/generate-transactions', [PengajuanController::class, 'generate'])->name('transactions.generate');
     Route::post('/pengajuan/update', [PengajuanController::class, 'updatechild'])->name('pengajuan.update');
-    Route::get('/pengajuan', [PengajuanController::class, 'index'])->name('pengajuan.index');
+    Route::get('/pengajuan', [PengajuanController::class, 'index'])->middleware('check.employee')->name('pengajuan.index');
     Route::get('/get-anak-format', [PengajuanController::class, 'exportAnakFormat'])->name('exportAnakFormat');
     Route::get('/get-saldo-format', [PengajuanController::class, 'exportSaldoAnakFormat'])->name('exportSaldoAnakFormat');
     Route::post('/post-anak-format', [PengajuanController::class, 'importAnak'])->name('importAnak');
