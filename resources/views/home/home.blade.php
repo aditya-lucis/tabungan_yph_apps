@@ -56,6 +56,22 @@
         border-radius: 3px;
     }
 
+    .sticky-header th {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+
+    .sticky-footer td {
+        position: sticky;
+        bottom: 0;
+        background: #f8f9fa;
+        font-weight: bold;
+        z-index: 10;
+    }
+
+
 </style>
 @endsection
 
@@ -100,7 +116,7 @@
         <h3>Saldo Per Jenjang Pendidikan</h3>
         <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
         <table class="table table-bordered">
-            <thead>
+            <thead class="sticky-header">
                 <tr>
                     <th>Jenjang Pendidikan</th>
                     <th>Tahun</th>
@@ -160,7 +176,7 @@
         <h3>Saldo Per Semester</h3>
         <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
             <table class="table table-bordered" style="border-collapse: collapse; width: 100%;">
-                <thead>
+                <thead class="sticky-header">
                     <tr>
                         <th>Perusahaan</th>
                         <th>Program</th>
@@ -230,7 +246,7 @@
     <h3>Saldo Per Tahun</h3>
         <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
             <table class="table table-bordered">
-                <thead>
+                <thead class="sticky-header">
                     <tr>
                         <th>Perusahaan</th>
                         <th>Program</th>
