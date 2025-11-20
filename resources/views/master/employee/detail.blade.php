@@ -95,7 +95,7 @@
                             data-id="{{ $anak->id }}"
                             class="btn btn-sm btn-outline-success custom-btn btn-rounded-3"
                             style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">
-                            Ajukan Pencairan {{ $anak->approval->last()->status}}
+                            Ajukan Pencairan
                         </a>
 
                         @php
