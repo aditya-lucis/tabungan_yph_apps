@@ -83,13 +83,42 @@
         <div class="table-card">
             <div class="row grid-margin">
                 <div class="col">
-                    <div class="col-12">
-                    <a id="logsavings" class="btn btn-sm btn-outline-info custom-btn btn-rounded-3" style="font-size: 14px;" data-id="{{ $anak->id }}"><b>{{ $anak->nama }}</b></a> <a id="reqApprove" data-id="{{ $anak->id }}" class="btn btn-sm btn-outline-success custom-btn btn-rounded-3" style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">Ajukan Pencairan</a>
-                        <a id="edit" data-id="{{ $anak->id }}" 
-                            class="btn btn-outline-warning custom-btn btn-rounded-3 position-absolute" 
-                            style="top: 10px; right: 10px; padding: 8px 12px; font-size: 16px;">
-                                <i class="typcn typcn-pencil" style="font-size: 18px;"></i>
+                    <div class="col-12 position-relative">
+                        <a id="logsavings"
+                            class="btn btn-sm btn-outline-info custom-btn btn-rounded-3"
+                            style="font-size: 14px;"
+                            data-id="{{ $anak->id }}">
+                            <b>{{ $anak->nama }}</b>
+                        </a>
+
+                        <a id="reqApprove"
+                            data-id="{{ $anak->id }}"
+                            class="btn btn-sm btn-outline-success custom-btn btn-rounded-3"
+                            style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">
+                            Ajukan Pencairan {{ $anak->approval->last()->status}}
+                        </a>
+
+                        @php
+                            $latestApproval = $anak->approval->last();
+                        @endphp
+
+                        {{-- Tombol Hapus hanya untuk admin --}}
+                        @if($latestApproval && $latestApproval->status == 2 && auth()->user()->role == 'adm')
+                            <a id="delete"
+                                data-id="{{ $anak->id }}"
+                                class="btn btn-outline-danger custom-btn btn-rounded-3 position-absolute"
+                                style="top: 10px; right: 50px; padding: 8px 12px; font-size: 16px;">
+                                <i class="typcn typcn-trash" style="font-size: 18px;"></i>
                             </a>
+                        @endif
+
+                        {{-- Tombol Edit --}}
+                        <a id="edit"
+                            data-id="{{ $anak->id }}"
+                            class="btn btn-outline-warning custom-btn btn-rounded-3 position-absolute"
+                            style="top: 10px; right: 10px; padding: 8px 12px; font-size: 16px;">
+                            <i class="typcn typcn-pencil" style="font-size: 18px;"></i>
+                        </a>
                     </div>
                     <br>
                     <table id="tableanak" class="table">
@@ -340,6 +369,33 @@ $(document).ready(function(){
     $('body').on('click', '#btn-add', function() {
         var employeeId = $(this).data('id');
         window.location.href = `/pengajuan/${employeeId}`;
+    });
+    
+    $('body').on('click', '#delete', function() {
+        var id = $(this).data('id');
+
+        Swal.fire({
+            title: "Yakin hapus?",
+            text: "Data akan hilang permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/delete/anak/${id}`,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function(response) {
+                        Swal.fire("Terhapus!", response.message, "success");
+                        location.reload();
+                    }
+                });
+            }
+        });
     });
 
     $('body').on('click', '#edit', function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\FormatEmplyeeExport;
 use App\Imports\EmployeeImports;
+use App\Models\ApprovalFirst;
 use App\Models\Company;
 use App\Models\DataAnak;
 use App\Models\Employee;
@@ -238,5 +239,18 @@ class EmployeeController extends Controller
         $query = Transaction::where('id_anak', $id)->orderBy('created_at', 'asc')->get();
 
         return response()->json([$anak, $query]);
+    }
+
+    public function deletanak($id) {
+        $anakData = DataAnak::find($id);
+
+        if (!$anakData) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
+        }else {
+            ApprovalFirst::where('id_anak', $anakData->id)->delete();
+            $anakData->delete();
+
+            return response()->json(['success' => true, 'message' => 'Data anak berhasil dihapus!']);
+        }
     }
 }

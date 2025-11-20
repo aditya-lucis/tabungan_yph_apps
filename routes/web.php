@@ -117,4 +117,6 @@ Route::middleware(['auth'])->group(function () {
     // =======================
     Route::get('/email/configuration', [EmailController::class, 'index'])->name('email.index');
     Route::put('/email/configuration', [EmailController::class, 'update'])->name('email-update');
+
+    Route::DELETE('/delete/anak/{id}', [EmployeeController::class, 'deletanak']);
 });
