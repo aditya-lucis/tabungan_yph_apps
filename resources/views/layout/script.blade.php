@@ -13,6 +13,13 @@
     const maxToShow = 5;
     let notifications = [];
 
+    function getNotifIcon(notif) {
+      if (notif.status == 1) return '✔️'; // disetujui
+      if (notif.status == 2) return '❌'; // ditolak
+      if (notif.status == 3) return '🔔'; // update info
+      return '🔔';
+    }
+
     // Fetch notifications
     fetch('/notifications/list')
       .then(res => res.json())
@@ -36,7 +43,7 @@
 
         item.innerHTML = `
           <div class="az-img-user">
-            <span class="${notif.isUnread ? 'text-primary' : 'text-muted'}">${notif.icon}</span>
+            <span class="${notif.isUnread ? 'text-primary' : 'text-muted'}">${getNotifIcon(notif)}</span>
           </div>
           <div class="media-body">
             <a href="${notif.url}" class="notif-link text-dark d-block mb-1" 

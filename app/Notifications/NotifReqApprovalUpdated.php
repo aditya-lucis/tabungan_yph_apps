@@ -41,11 +41,20 @@ class NotifReqApprovalUpdated extends Notification
             1 => 'Pengajuan pencairan dana tabungan kamu telah disetujui',
             default => 'Maaf pengajuan pencairan dana tabungan kamu tidak disetujui',
         };
+
+        $icon = match($this->req->status) {
+            1 => '✔',
+            2 => '✖',
+            3 => '🔔',
+            default => 'ℹ',
+        };
+
         return [
             'message' => $statusText,
             'url' => route('tabungan.inbox'), // Ganti sesuai route
             'type' => 'request_updated',
-            'status' => $this->req->status
+            'status' => $this->req->status,
+            'icon' => $icon
         ];
     }
 

@@ -121,6 +121,8 @@ class InboxController extends Controller
 
         $pengaju = $anakData->karyawan->user;
 
+        $query->refresh();
+
         if ($pengaju) {
             $pengaju->notify(new NotifReqApprovalUpdated($query));
         }
