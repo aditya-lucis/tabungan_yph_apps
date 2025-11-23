@@ -217,7 +217,7 @@
                         <div class="row" id="nominal" style="display: none;">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">Nominal Yang Diajukan:</label>
+                                    <label class="form-label">Nominal Yang Disetujui:</label>
                                     <input type="text" name="nominal_input" id="nominal_input" class="form-control">
                                 </div>
                             </div>
@@ -225,14 +225,6 @@
                                 <div class="form-group">
                                     <label class="form-label">Note:</label>
                                     <input type="text" name="note_input" id="note_input" class="form-control" placeholder="Pengajuan Pencairan Tahap: ">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row" id="nominalapprove" style="display: none;">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Nominal Yang Disetujui</label>
-                                    <input type="text" name="nominal_setuju" id="nominal_setuju" class="form-control" readonly>
                                 </div>
                             </div>
                         </div>
@@ -463,6 +455,8 @@ $(document).ready(function () {
                 let formattedTotal = formatNumber(response.nominal);
                 $('#nominal_input').val(formattedTotal);
                 $('#rincianWrapper').empty()
+                totalajuan = 0
+                rincianText =''
 
                 if (response.norek != null && response.norek != '') {
                     $('#norek').val(response.norek);
@@ -483,13 +477,23 @@ $(document).ready(function () {
                 }
                 
                 if (response.reqpprovaldetail && response.reqpprovaldetail.length > 0) {
+
+                    let jumlahItem = response.reqpprovaldetail.length
+
                      response.reqpprovaldetail.forEach(function (item, index) {
                         let formattedNominal = item.nominal.toLocaleString()
+                        let rincianText = item.rincian
+
+                        totalajuan += item.nominal
+
+                        if (jumlahItem > 1) {
+                            rincianText = `${index + 1}. ${item.rincian}`
+                        }
 
                         $('#rincianWrapper').append(`
                             <div class="form-row rincian-item mb-2">
                                 <div class="col-md-8">
-                                    <input type="text" class="form-control" value="${item.rincian}" readonly>
+                                    <input type="text" class="form-control" value="${rincianText}" readonly>
                                 </div>
                                 <div class="col-md-4">
                                     <input type="text" class="form-control text-right" value="${formattedNominal}" readonly>
@@ -497,6 +501,19 @@ $(document).ready(function () {
                             </div>
                         `)
                      })
+
+                     let formattedTotal = totalajuan.toLocaleString()
+
+                     $('#rincianWrapper').append(`
+                        <div class="form-row rincian-item mb-2">
+                            <div class="col-md-8">
+                                <input type="text" class="form-control font-weight-bold" value="Total: " readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control text-right" value="${formattedTotal}" readonly>
+                            </div>
+                        </div>
+                    `)
                 }else{
                     $('#rincianWrapper').append(`
                         <p class="text-muted">Tidak ada rincian pengajuan dana.</p>
@@ -585,15 +602,12 @@ $(document).ready(function () {
 
                     if (response.status == 1) {
                         $("#nominal").show()
-                        $("#nominalapprove").show()
                         let formattedTotal = formatNumber(response.nominal);
                         let formattedApprove = formatNumber(response.nominalapprove);
-                        $("#nominal_input").val(formattedTotal);
+                        $("#nominal_input").val(formattedApprove);
                         $("#note_input").val(response.notes);
-                        $("#nominal_setuju").val(formattedApprove);
                     }else{
                         $("#nominal").hide()
-                        $("#nominalapprove").hide()
                     }
 
                 $('#editModal').modal('show');

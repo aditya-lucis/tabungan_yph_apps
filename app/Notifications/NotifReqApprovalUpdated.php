@@ -36,8 +36,11 @@ class NotifReqApprovalUpdated extends Notification
      */
     public function toDatabase($notifiable)
     {
-        $statusText = $this->req->status == 1 ? 'Pengajuan pencairan dana tabungan kamu telah disetujui' : 'Maaf engajuan pencairan dana tabungan kamu tidak disetujui';
-
+        $statusText = match($this->req->status) {
+            3 => 'Terdapat update pada pengajuan pencairan kamu',
+            1 => 'Pengajuan pencairan dana tabungan kamu telah disetujui',
+            default => 'Maaf pengajuan pencairan dana tabungan kamu tidak disetujui',
+        };
         return [
             'message' => $statusText,
             'url' => route('tabungan.inbox'), // Ganti sesuai route

@@ -67,7 +67,7 @@
     
     @if(count($dataanak) < 2)
         <button type="button" class="btn btn-sm btn-outline-light custom-btn" id="btn-add" data-id="{{ Crypt::encryptString($employee->id) }}">
-            <i class="typcn typcn-document-add"></i> Tambah Pengajuan
+            <i class="typcn typcn-document-add"></i> Tambah Pendaftaran Baru
         </button>
     @endif
 
