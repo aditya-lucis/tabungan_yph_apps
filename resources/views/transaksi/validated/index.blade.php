@@ -230,6 +230,9 @@
 
 <script>
     $(document).ready(function () {
+
+        const userRole = "{{ Auth::user()->role }}"
+
         $('.fc-datepicker').datepicker({
             showOtherMonths: true,
             selectOtherMonths: true
@@ -281,7 +284,22 @@
             },
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-                { data: 'anak.karyawan.name', name: 'anak.karyawan.name' },
+                { 
+                    data: 'anak.karyawan.name',
+                    name: 'anak.karyawan.name',
+
+                    render: function (data, type, row) {
+                        if (userRole === 'adm') {
+                            const employeeId = row.anak.karyawan.id
+
+                            return `
+                            <a href="/employee/${employeeId}" style="text-decoration:none; color:inherit; cursor:pointer;">
+                                ${data}
+                            </a>
+                            `
+                        }
+                    }
+                },
                 { data: 'anak.karyawan.company.name', name: 'anak.karyawan.company.name' },
                 { data: 'anak.nama', name: 'anak.nama' },
                 { data: 'created_at', name: 'created_at', className: 'text-center' },
