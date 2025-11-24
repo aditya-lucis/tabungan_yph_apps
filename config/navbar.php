@@ -23,13 +23,13 @@ return [
                     'role' => ['adm']
                 ],
                 [
-                    'name' => 'Approval Pendaftaran',
+                    'name' => 'Approval Pendaftaran Anak',
                     'route' => 'validate.index',
                     'pattern' => '/validate',
                     'role' => ['adm']
                 ],
                 [
-                    'name' => 'Approval Pengajuan',
+                    'name' => 'Approval Pengajuan Pencairan Tabungan',
                     'route' => 'tabungan.inbox',
                     'pattern' => '/tabungan/inbox',
                     'role' => ['adm', 'krw']
