@@ -507,7 +507,7 @@ $(document).ready(function(){
             $('#reqApproveModal .modal-body').html(`
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label for="tujuanPencairan">Masukan Tujuan Pencairan</label>
+                        <label for="tujuanPencairan">Masukan Deskripsi Pembayaran</label>
                         <input type="text" name="tujuan_pencairan" id="tujuanPencairan" class="form-control" placeholder="Tujuan Pencairan">
                     </div>
                     <div class="form-group col-md-6">

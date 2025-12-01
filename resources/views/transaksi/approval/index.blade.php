@@ -196,7 +196,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">Reason:</label>
+                                    <label class="form-label">Deskripsi Pembayaran:</label>
                                     <input type="text" name="reason" id="reason" class="form-control">
                                 </div>
                             </div>
