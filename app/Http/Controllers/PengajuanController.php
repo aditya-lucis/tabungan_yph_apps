@@ -206,7 +206,7 @@ class PengajuanController extends Controller
             'rincian.*' => 'required|string',
             'nominal_rincian' => 'required|array|min:1',
             'nominal_rincian.*' => 'required|numeric|min:1',
-            'filepencairan' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'filepencairan' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xlsx,xls',
             'filefcraport' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ]);
 
