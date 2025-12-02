@@ -316,7 +316,6 @@ $(document).ready(function () {
         info: true,
         scrollX: true,
         scrollCollapse: true,
-        scrollY: '400px',
         autoWidth: false,
         responsive: false,
         processing: true,

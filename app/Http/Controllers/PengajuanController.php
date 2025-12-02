@@ -191,24 +191,61 @@ class PengajuanController extends Controller
         ]);
     }
     
-    public function postreqapprovael(Request $request) {
-        $idanak = $request->id_anak;
-        $anakData = DataAnak::find($idanak);
-        $filepencairanName = "";
-        $filefcraportName = "";
+    public function postreqapprovael(Request $request)
+    {
+        
+        $request->validate([
+            'id_anak' => 'required|exists:data_anaks,id',
+            'nominal' => 'required|numeric|min:1',
+            'tujuan_pencairan' => 'required|string',
+            'norek' => 'required|string',
+            'bankname' => 'required|string',
+            'accountbankname' => 'required|string',
+            'isreimburst' => 'nullable|boolean',
+            'rincian' => 'required|array|min:1',
+            'rincian.*' => 'required|string',
+            'nominal_rincian' => 'required|array|min:1',
+            'nominal_rincian.*' => 'required|numeric|min:1',
+            'filepencairan' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'filefcraport' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+        ]);
 
-        $final_balance = $anakData->latestTransaction->final_balance;
+        // Validasi jumlah array harus sama
+        if (count($request->rincian) !== count($request->nominal_rincian)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jumlah rincian dan nominal rincian tidak sama!'
+            ], 422);
+        }
+
+        // Validasi total rincian harus sama dengan nominal utama
+        $totalDetail = array_sum($request->nominal_rincian);
+        if ($totalDetail != $request->nominal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total seluruh rincian harus sama dengan nominal pengajuan!'
+            ], 422);
+        }
+
+        $anakData = DataAnak::find($request->id_anak);
+        $final_balance = $anakData->latestTransaction->final_balance ?? 0;
 
         if ($request->nominal > $final_balance) {
-            return response()->json(['success' => false, 'message' => "Nominal pengajuan tidak boleh melebihi sisa tabungan!"], 404);
+            return response()->json([
+                'success' => false,
+                'message' => "Nominal pengajuan tidak boleh melebihi sisa tabungan!"
+            ], 422);
         }
+
+        $filepencairanName = "";
+        $filefcraportName = "";
 
         if ($request->hasFile('filepencairan')) {
             $filepencairan = $request->file('filepencairan');
             $filepencairanName = 'File_Pencairan_' . uniqid() . '.' . $filepencairan->getClientOriginalExtension();
             $filepencairan->move(public_path('upload'), $filepencairanName);
         }
-        
+
         if ($request->hasFile('filefcraport')) {
             $filefcraport = $request->file('filefcraport');
             $filefcraportName = 'fc_raport_' . uniqid() . '.' . $filefcraport->getClientOriginalExtension();
@@ -216,67 +253,60 @@ class PengajuanController extends Controller
         }
 
         $req = ReqApproval::create([
-                'id_anak' => $anakData->id,
-                'reason' => $request->tujuan_pencairan,
-                'nominal' => $request->nominal,
-                'status' => 0,
-                'file' => $filepencairanName,
-                'norek' => $request->norek,
-                'bankname' => $request->bankname,
-                'accountbankname' => $request->accountbankname,
-                'isreimburst' => $request->isreimburst
-            ]);
-
-        $rincianList = $request->input('rincian', []);
-        $nominalList = $request->input('nominal_rincian', []);
+            'id_anak' => $anakData->id,
+            'reason' => $request->tujuan_pencairan,
+            'nominal' => $request->nominal,
+            'status' => 0,
+            'file' => $filepencairanName,
+            'norek' => $request->norek,
+            'bankname' => $request->bankname,
+            'accountbankname' => $request->accountbankname,
+            'isreimburst' => $request->isreimburst
+        ]);
+        
+        $rincianList = $request->rincian;
+        $nominalList = $request->nominal_rincian;
 
         foreach ($rincianList as $i => $deskripsi) {
-            if (!empty($deskripsi)) {
-                ReqApprovalDetail::create([
-                    'id_req_approval' => $req->id,
-                    'rincian' => $deskripsi,
-                    'nominal' => isset($nominalList[$i]) ? $nominalList[$i] : 0,
-                ]);
-            }
+            ReqApprovalDetail::create([
+                'id_req_approval' => $req->id,
+                'rincian' => $deskripsi,
+                'nominal' => $nominalList[$i],
+            ]);
         }
-
+        
         if ($filefcraportName !== "") {
             $anakData->update([
                 'fc_raport' => $filefcraportName
             ]);
         }
 
-        // Kirim notifikasi ke semua admin
+        
         $admins = User::where('role', 'adm')->get();
         foreach ($admins as $admin) {
             $admin->notify(new NotifReqApprovalCreated($req));
         }
-
-        $nominalreq = number_format($request->nominal, 2);
-
+        
         if (Auth::user()->role === 'krw') {
             $emailData = [
                 'title' => 'Permohonan Pencairan Saldo Tabungan',
-                'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk $anakData->nama sebesar Rp. $nominalreq. Silahkan menunggu kabar balasan dari Yayasan Pesada Hati Divisi Pendidikan.",
+                'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk {$anakData->nama} sebesar Rp. " . number_format($request->nominal, 2),
                 'subject' => 'Permohonan Pencairan Saldo Tabungan',
                 'alert' => true
             ];
 
             $toEmail = $anakData->karyawan->user->email;
 
-            // if ($toEmail) {
-            //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
-            // }
+            // Mail::to($toEmail)->queue(new CustomEmail($emailData));
         }
         
-    
-        if ($anakData) {
-            return response()->json(['success' => true, 'message' => "Form yang lengkap akan memudahkan pencairan dana. Jadi lengkapi form anda untuk kemudahan pencairan."]);
-        } else {
-            return response()->json(['success' => false, 'message' => "Data anak tidak ditemukan!"], 404);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => "Form lengkap sudah diterima. Mohon menunggu persetujuan."
+        ]);
     }
 
+    
     public function get($id) {
         $anakData = DataAnak::with(['transaction', 'reqpproval', 'program', 'latestTransaction'])->find($id);
         

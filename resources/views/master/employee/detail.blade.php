@@ -158,8 +158,7 @@
           <input type="hidden" name="id_anak" id="id_anak">
             <div class="modal-body">
             </div>
-          </form>
-          <div class="modal-footer d-flex justify-content-between align-items-center">
+            <div class="modal-footer d-flex justify-content-between align-items-center">
             <div class="form-check">
                 <input type="checkbox" id="confirmCheck" class="form-check-input">
                 <label for="confirmCheck" class="form-check-label">
@@ -169,6 +168,7 @@
             <button type="button" data-dismiss="modal" class="btn btn-outline-light">Cancel</button>
             <button type="button" id="saveChangesBtn" class="btn btn-indigo" disabled>Accept</button>
           </div>
+          </form>
         </div>
     </div><!-- modal-dialog -->
 </div><!-- modal -->
@@ -654,57 +654,49 @@ $(document).ready(function(){
 
     // post pengajuan pencairan
     $('body').on('click', '#saveChangesBtn', function() {
+
         var formData = new FormData();
+
         formData.append('id_anak', $('#id_anak').val());
         formData.append('tujuan_pencairan', $('#tujuanPencairan').val());
-        formData.append('nominal', $('#nominal').val().replace(/,/g, '')); // Hapus koma
+        formData.append('nominal', $('#nominal').val().replace(/,/g, ''));
         formData.append('norek', $('#norek').val());
         formData.append('bankname', $('#bankname').val());
         formData.append('accountbankname', $('#accountbankname').val());
-        formData.append('isreimburst', $('#isreimburst').val() || 0); // Gunakan default jika kosong
+        formData.append('isreimburst', $('#isreimburst').val() || 0);
 
-        // Tambahkan file jika ada
-        var fileInput = $('#filepencairan')[0].files[0];
-        if (fileInput) {
-            formData.append('filepencairan', fileInput);
+        // File
+        if ($('#filepencairan')[0].files[0]) {
+            formData.append('filepencairan', $('#filepencairan')[0].files[0]);
         }
-        
-        // Tambahkan file jika ada
-        var filefcraport = $('#filefcraport')[0].files[0];
-        if (filefcraport) {
-            formData.append('filefcraport', filefcraport);
+
+        if ($('#filefcraport')[0].files[0]) {
+            formData.append('filefcraport', $('#filefcraport')[0].files[0]);
         }
-        
-        $('[id^=rincian]').each(function (index) {
-            let rincianVal = $(this).val() || ''; // aman dari undefined
 
-            // cari input nominal yang *berada di baris yang sama* (lebih aman)
-            let nominalInput = $(this).closest('.form-row').find('input[id^=nominalRincian]');
-            let nominalVal = nominalInput.val() ? nominalInput.val().replace(/,/g, '') : '0';
-
-            formData.append(`rincian[${index}]`, rincianVal);
-            formData.append(`nominal_rincian[${index}]`, nominalVal);
+        // --- PERBAIKAN DISINI ---
+        $('input[name="rincian[]"]').each(function (i) {
+            formData.append(`rincian[${i}]`, $(this).val());
         });
 
+        $('input[name="nominal_rincian[]"]').each(function (i) {
+            formData.append(`nominal_rincian[${i}]`, $(this).val().replace(/,/g, '') || 0);
+        });
 
-        formData.append('_token', '{{ csrf_token() }}'); // Laravel CSRF Token
+        formData.append('_token', '{{ csrf_token() }}');
 
         $.ajax({
-            url: "{{ route('postreqapprovael') }}", // Sesuaikan dengan route Anda
+            url: "{{ route('postreqapprovael') }}",
             type: "POST",
             data: formData,
-            processData: false, // Jangan proses data agar file dikirim dengan benar
-            contentType: false, // Jangan set Content-Type, biarkan browser yang menentukannya
+            processData: false,
+            contentType: false,
             success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        title: "Pengajuan Pencairan Anda Berhasil!!",
-                        text: response.message,
-                        icon: "success"
-                    }).then(() => {
-                        location.reload();
-                    });
-                }
+                Swal.fire({
+                    title: "Berhasil!",
+                    text: response.message,
+                    icon: "success"
+                }).then(() => location.reload());
             },
             error: function(xhr) {
                 Swal.fire({
@@ -714,7 +706,9 @@ $(document).ready(function(){
                 });
             }
         });
+
     });
+
 
     // edit data anak
     $(document).on("submit", "#form-edit", function (e) {
