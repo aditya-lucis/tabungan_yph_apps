@@ -84,6 +84,14 @@ class PengajuanController extends Controller
                     continue;
                 }
 
+                $cekDuplikat = DataAnak::where('id_karyawan', $employeeId)
+                ->where('nama', $anak['nama'])
+                ->first();
+
+                if ($cekDuplikat) {
+                    throw new \Exception("Anak dengan nama {$anak['nama']} sudah anda daftarkan.");
+                }
+
                  // Convert tgl_lahir ke format MySQL (Y-m-d)
                 $tglLahir = null;
                 if (!empty($anak['tgl_lahir'])) {

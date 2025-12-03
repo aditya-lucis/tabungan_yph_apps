@@ -91,12 +91,18 @@
                             <b>{{ $anak->nama }}</b>
                         </a>
 
-                        <a id="reqApprove"
-                            data-id="{{ $anak->id }}"
-                            class="btn btn-sm btn-outline-success custom-btn btn-rounded-3"
-                            style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">
-                            Ajukan Pencairan
-                        </a>
+                        @php
+                            $saldo = $anak->latestTransaction;
+                        @endphp
+
+                        @if ($saldo)
+                            <a id="reqApprove"
+                                data-id="{{ $anak->id }}"
+                                class="btn btn-sm btn-outline-success custom-btn btn-rounded-3"
+                                style="top: 10px; right: 10px; padding: 8px 12px; font-size: 13px;">
+                                Ajukan Pencairan
+                            </a>
+                        @endif
 
                         @php
                             $latestApproval = $anak->approval->last();
