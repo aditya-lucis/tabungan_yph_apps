@@ -21,21 +21,19 @@ class CheckEmployeeAccess
 
             // 🔒 blok akses home
             if ($routeName === 'homeindex') {
-                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
-                                 ->with('error', 'Unauthorized access.');
+                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)]);
             }
 
             // 🔒 blok akses employee.index
             if ($routeName === 'employee.index') {
-                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
-                                 ->with('error', 'Unauthorized access.');
+                return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)]);
             }
 
             // 🔒 blok akses pengajuan.index
             if ($routeName === 'pengajuan.index') {
                 return redirect()->route('employee.show', [
                     'employee' => Crypt::encryptString($user->id_employee)
-                ])->with('error', 'Unauthorized access.');
+                ]);
             }
 
 
@@ -52,8 +50,7 @@ class CheckEmployeeAccess
 
                 // jika ID tidak sesuai
                 if ((int)$requestedId !== (int)$user->id_employee) {
-                    return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)])
-                                     ->with('error', 'Unauthorized access.');
+                    return redirect()->route('employee.show', ['employee' => Crypt::encryptString($user->id_employee)]);
                 }
 
                 // ganti parameter route menjadi ID asli supaya controller bisa pakai
