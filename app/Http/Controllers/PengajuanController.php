@@ -38,6 +38,9 @@ class PengajuanController extends Controller
             ->whereHas('karyawan', function ($q) {
                 $q->where('isactive', true);
             })
+            ->whereHas('approval', function ($q) {
+                $q->where('status', 1);
+            })
             ->orderBy('nama', 'ASC');
 
             return DataTables::of($query)
@@ -477,7 +480,12 @@ class PengajuanController extends Controller
 
         $dataAnaks = DataAnak::whereHas('karyawan', function ($q) {
             $q->where('isactive', true);
-        })->with('program')->get();
+        })
+        ->whereHas('approval', function ($q) {
+            $q->where('status', 1);
+        })
+        ->with('program')
+        ->get();
 
         foreach ($dataAnaks as $anak) {
             Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, $keteranganSemester);
