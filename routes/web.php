@@ -119,4 +119,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/email/configuration', [EmailController::class, 'update'])->name('email-update');
 
     Route::DELETE('/delete/anak/{id}', [EmployeeController::class, 'deletanak']);
+    //log-viewers
+    Route::get('log-viewers', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index']);
+
 });
