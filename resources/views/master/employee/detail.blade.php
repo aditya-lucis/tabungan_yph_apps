@@ -622,11 +622,11 @@ $(document).ready(function(){
                     $.each(response[1], function (index, transaction) {
                         $('#tablogsavings tbody').append(`
                             <tr>
-                                <td class="text-right">Rp. ${transaction.previous_balance.toLocaleString()}</td>
-                                <td class="text-right">Rp. ${transaction.credit.toLocaleString()}</td>
-                                <td class="text-right">Rp. ${transaction.running_balance.toLocaleString()}</td>
-                                <td class="text-right">Rp. ${transaction.debit.toLocaleString()}</td>
-                                <td class="text-right">Rp. ${transaction.final_balance.toLocaleString()}</td>
+                                <td class="text-right">Rp. ${transaction.previous_balance.toLocaleString('en-US')}</td>
+                                <td class="text-right">Rp. ${transaction.credit.toLocaleString('en-US')}</td>
+                                <td class="text-right">Rp. ${transaction.running_balance.toLocaleString('en-US')}</td>
+                                <td class="text-right">Rp. ${transaction.debit.toLocaleString('en-US')}</td>
+                                <td class="text-right">Rp. ${transaction.final_balance.toLocaleString('en-US')}</td>
                                 <td>${transaction.notes}</td>
                             </tr>
                         `)
@@ -824,7 +824,7 @@ $(document).ready(function(){
             let val = $(this).val().replace(/,/g, '');
             if (val) total += parseInt(val);
         });
-        $('#nominal').val(total.toLocaleString());
+        $('#nominal').val(total.toLocaleString('en-US'));
     }
 
     // ✅ Ulang urutan abjad setelah hapus
