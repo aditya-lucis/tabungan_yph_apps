@@ -228,6 +228,14 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row" id="cancelreason" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Alasan Ditolak:</label>
+                                    <input type="text" name="note_reject" id="note_reject" class="form-control" placeholder="Alasan Ditolak: ">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" id="submitBtn" class="btn btn-primary">Update</button>
@@ -594,19 +602,28 @@ $(document).ready(function () {
                         }
                     }
 
-                    if (response.status == 3) {   
-                        $("#loghistory").show()
-                        $("#loghistorysel").val(response.latestreqpprovallog.descript)
-                    }
-
                     if (response.status == 1) {
                         $("#nominal").show()
+                        $("#loghistory").hide()
+                        $("#cancelreason").hide()
                         let formattedTotal = formatNumber(response.nominal);
                         let formattedApprove = formatNumber(response.nominalapprove);
                         $("#nominal_input").val(formattedApprove);
                         $("#note_input").val(response.notes);
-                    }else{
+                    }else if(response.status == 2){
+                        $("#cancelreason").show()
+                        $("#note_reject").val(response.notes);
                         $("#nominal").hide()
+                        $("#loghistory").hide()
+                    }else if (response.status == 3){
+                        $("#loghistory").show()
+                        $("#cancelreason").hide()
+                        $("#nominal").hide()
+                        $("#loghistorysel").val(response.latestreqpprovallog.descript)
+                    }else{
+                        $("#cancelreason").hide()
+                        $("#nominal").hide()
+                        $("#loghistory").hide()
                     }
 
                 $('#editModal').modal('show');
@@ -627,23 +644,37 @@ $(document).ready(function () {
 
         // Saat status approval berubah
         $("#status_approval").change(function () {
-            let status = $(this).val();
-            let nominalDiv = $("#nominal");
-            let nominalInput = $("#nominal_input");
-            let noteInput = $("#note_input");
-            let loghistory = $("#loghistory");
+            let status = $(this).val()
+            let nominalDiv = $("#nominal")
+            let nominalInput = $("#nominal_input")
+            let noteInput = $("#note_input")
+            let loghistory = $("#loghistory")
+            let cancelreason = $("#cancelreason")
 
-            if (status === "1") { // Jika pilih "Approve"
-                nominalDiv.show();
+            if (status === "1") {
+                nominalDiv.show()
                 loghistory.hide()
-                nominalInput.prop("required", true);
-                noteInput.prop("required", true);
+                cancelreason.hide()
+                nominalInput.prop("required", true)
+                noteInput.prop("required", true)
             }else if (status === "3"){
                 loghistory.show()
-            }else { // Jika pilih "Reject" atau lainnya
+                nominalDiv.hide()
+                cancelreason.hide()
+                nominalInput.prop("required", false).val("")
+                noteInput.prop("required", false).val("")
+            }else if (status === "2") {
+                cancelreason.show()
                 nominalDiv.hide()
                 loghistory.hide()
-                nominalInput.prop("required", false).val("") // Kosongkan field
+                nominalInput.prop("required", false).val("")
+                noteInput.prop("required", false).val("")
+            }
+            else {
+                cancelreason.hide()
+                nominalDiv.hide()
+                loghistory.hide()
+                nominalInput.prop("required", false).val("")
                 noteInput.prop("required", false).val("")
             }
         });
@@ -666,13 +697,19 @@ $(document).ready(function () {
     }
 
     $('#editForm').submit(function(e){
-        e.preventDefault();
-        var anak_id = $('#id_anak').val();
-        var req_id = $('#id_req').val();
-        var status_approve = $('#status_approval').val();
-        var note = $('#reason').val();
-        var nominal = cleanNumber($('#nominal_input').val());
-        var notes = $('#note_input').val();
+        e.preventDefault()
+        var anak_id = $('#id_anak').val()
+        var req_id = $('#id_req').val()
+        var status_approve = $('#status_approval').val()
+        var note = $('#reason').val()
+        var nominal = cleanNumber($('#nominal_input').val())
+        var notes = ""
+
+        if (status_approve == 1) {
+            notes = $('#note_input').val()
+        }else if(status_approve == 2) {
+            notes = $('#note_reject').val()
+        }
 
         var dataToSend = {
             _token        : "{{ csrf_token() }}",
@@ -684,7 +721,7 @@ $(document).ready(function () {
             nominal_input : nominal,
             note_input    : notes
         };
-
+        
         if ($('#loghistorysel').length) {
             dataToSend.loghistorysel = $('#loghistorysel').val()
         }

@@ -87,7 +87,7 @@ class InboxController extends Controller
             if ($request->nominal_input > $finalBalance) {
                 return response()->json(['success' => false, 'message' => 'Nominal tidak boleh melebihi sisa tabungan!'], 404);
             }else{
-                Transaction::createTransaction($request->id_anak, 0, $request->nominal_input, $request->notes);
+                Transaction::createTransaction($request->id_anak, 0, $request->nominal_input, $request->note_input);
             }
         }
 

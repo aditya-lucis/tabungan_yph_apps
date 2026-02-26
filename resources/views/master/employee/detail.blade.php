@@ -330,6 +330,7 @@
                                     <td class="text-right">Debet</td>
                                     <td class="text-right">Saldo Akhir</td>
                                     <td>Notes</td>
+                                    <td>Tanggal</td>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -620,6 +621,12 @@ $(document).ready(function(){
 
                  if (response[1].length > 0) {
                     $.each(response[1], function (index, transaction) {
+
+                    const UpdatedDate = new Date(transaction.updated_at).toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        dateStyle: 'long'
+                    })
+
                         $('#tablogsavings tbody').append(`
                             <tr>
                                 <td class="text-right">Rp. ${transaction.previous_balance.toLocaleString('en-US')}</td>
@@ -628,6 +635,7 @@ $(document).ready(function(){
                                 <td class="text-right">Rp. ${transaction.debit.toLocaleString('en-US')}</td>
                                 <td class="text-right">Rp. ${transaction.final_balance.toLocaleString('en-US')}</td>
                                 <td>${transaction.notes}</td>
+                                <td>${UpdatedDate}</td>
                             </tr>
                         `)
                     })
