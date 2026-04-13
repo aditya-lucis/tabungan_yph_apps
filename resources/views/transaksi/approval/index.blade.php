@@ -84,7 +84,9 @@
                 <form id="editForm">
                     @csrf
                     <input type="hidden" id="id_anak">
-                    <input type="hidden" name="id_req" id="id_req" class="form-control" readonly>
+                    <input type="hidden" name="id_req" id="id_req">
+                    <input type="hidden" id="is_revised_owner" value="0">
+                    <input type="hidden" id="owner_karyawan_id">
                     <!-- Informasi Data Anak -->
                     <div class="row">
                         <div class="col-md-6">
@@ -157,14 +159,34 @@
                             <label for="file" class="form-label"></label>
                             <div class="form-group">
                                 <label class="form-label">File Dokumen Pencairan:</label>
-                                <label class="form-label"><a class="show-file" data-file="">Lihat File</a></label>
+                                <div id="pencairan-display" class="d-flex align-items-center">
+                                    <a class="show-file me-3" data-file="" target="_blank">Lihat File</a>
+                                    <button type="button" class="btn btn-sm btn-outline-warning btn-ganti-file" 
+                                            data-type="pencairan" style="display:none;">
+                                        <i class="typcn typcn-upload"></i> Ganti File
+                                    </button>
+                                </div>
+                                <!-- Form upload akan muncul di sini -->
+                                <div id="pencairan-upload" class="mt-2" style="display:none;">
+                                    <input type="file" id="new_file_pencairan" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                    <small class="text-muted">Maksimal 5MB</small>
+                                </div>
                             </div>
 
                             <div class="form-group mt-3">
                                 <label class="form-label">File Fotocopy Raport:</label>
-                                <label class="form-label">
-                                    <a class="show-file-raport" target="_blank" data-file="">Lihat File</a>
-                                </label>
+                                <div id="raport-display" class="d-flex align-items-center">
+                                    <a class="show-file-raport me-3" data-file="" target="_blank">Lihat File</a>
+                                    <button type="button" class="btn btn-sm btn-outline-warning btn-ganti-file" 
+                                            data-type="raport" style="display:none;">
+                                        <i class="typcn typcn-upload"></i> Ganti File
+                                    </button>
+                                </div>
+                                <!-- Form upload akan muncul di sini -->
+                                <div id="raport-upload" class="mt-2" style="display:none;">
+                                    <input type="file" id="new_file_raport" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    <small class="text-muted">Maksimal 5MB</small>
+                                </div>
                             </div>
                         </div>
                         </div>
@@ -192,6 +214,7 @@
                                     <option value="1">Approve</option>
                                     <option value="2">Reject</option>
                                     <option value="3">Awaiting</option>
+                                    <option value="4">Revised</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -231,7 +254,7 @@
                         <div class="row" id="cancelreason" style="display: none;">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">Alasan Ditolak:</label>
+                                    <label id="reasonLabel" class="form-label">Alasan Ditolak:</label>
                                     <input type="text" name="note_reject" id="note_reject" class="form-control" placeholder="Alasan Ditolak: ">
                                 </div>
                             </div>
@@ -347,7 +370,7 @@ $(document).ready(function () {
             { data: 'reason', name: 'reason' },
             { data: 'nominal', name: 'nominal', className: 'text-end',
                 render: function(data) {
-                    return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2 }).format(data);
+                    return new Intl.NumberFormat('en-EN', { minimumFractionDigits: 2 }).format(data);
                 }
             },
             { data: 'created_at', name: 'created_at', className: 'text-center' },
@@ -465,6 +488,27 @@ $(document).ready(function () {
                 totalajuan = 0
                 rincianText =''
 
+                $('#owner_karyawan_id').val(response.anak.karyawan.id || 0);
+
+                const isOwnerRevised = (
+                    response.status == 4 && 
+                    userRole === 'krw' && 
+                    parseInt(userEmployeeId) === parseInt(response.anak.karyawan.id || 0)
+                );
+
+                $('#norek, #bankname, #accountbankname').prop('readonly', true);
+                $('#reason').prop('readonly', false);
+
+                // Hide semua tombol ganti file
+                $('.btn-ganti-file').hide();
+                $('#pencairan-upload, #raport-upload').hide();
+                $('#pencairan-display, #raport-display').show();
+
+                if (isOwnerRevised) {
+                    $('#norek, #bankname, #accountbankname').prop('readonly', false);
+                    $('.btn-ganti-file').show();
+                }
+
                 if (response.norek != null && response.norek != '') {
                     $('#norek').val(response.norek);
                 }else{
@@ -482,45 +526,75 @@ $(document).ready(function () {
                 }else{
                     $('#accountbankname').val("Tidak ada Nama Pemilik Rekening Bank");
                 }
+
+                $('#is_revised_owner').val(isOwnerRevised ? 1 : 0);
                 
                 if (response.reqpprovaldetail && response.reqpprovaldetail.length > 0) {
+                    if (isOwnerRevised) {
+                        response.reqpprovaldetail.forEach(function (item) {
+                            totalajuan += parseFloat(item.nominal || 0);
 
-                    let jumlahItem = response.reqpprovaldetail.length
+                            $('#rincianWrapper').append(`
+                                <div class="form-row rincian-item mb-2 editable-row">
+                                    <div class="col-md-7">
+                                        <input type="text" class="form-control rincian-text" 
+                                            value="${item.rincian}" placeholder="Deskripsi rincian">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control text-right rincian-nominal" 
+                                            value="${parseFloat(item.nominal).toLocaleString('en-EN')}" placeholder="0">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-sm btn-danger btn-remove-rincian">
+                                            <i class="typcn typcn-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `);
+                        });
 
-                     response.reqpprovaldetail.forEach(function (item, index) {
-                        let formattedNominal = item.nominal.toLocaleString()
-                        let rincianText = item.rincian
-
-                        totalajuan += item.nominal
-
-                        if (jumlahItem > 1) {
-                            rincianText = `${index + 1}. ${item.rincian}`
-                        }
-
+                        // Tombol Tambah Rincian
                         $('#rincianWrapper').append(`
-                            <div class="form-row rincian-item mb-2">
-                                <div class="col-md-8">
-                                    <input type="text" class="form-control" value="${rincianText}" readonly>
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control text-right" value="${formattedNominal}" readonly>
-                                </div>
-                            </div>
-                        `)
-                     })
+                            <button type="button" id="btn-tambah-rincian" class="btn btn-sm btn-success mb-3">
+                                <i class="typcn typcn-plus"></i> Tambah Rincian
+                            </button>
+                        `);
 
-                     let formattedTotal = totalajuan.toLocaleString()
+                    } else {
+                        // ==================== MODE READONLY ====================
+                        let jumlahItem = response.reqpprovaldetail.length;
+                        response.reqpprovaldetail.forEach(function (item, index) {
+                            let formattedNominal = parseFloat(item.nominal).toLocaleString('en-EN');
+                            let rincianText = (jumlahItem > 1) ? `${index + 1}. ${item.rincian}` : item.rincian;
 
-                     $('#rincianWrapper').append(`
-                        <div class="form-row rincian-item mb-2">
+                            totalajuan += parseFloat(item.nominal || 0);
+
+                            $('#rincianWrapper').append(`
+                                <div class="form-row rincian-item mb-2">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" value="${rincianText}" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control text-right" value="${formattedNominal}" readonly>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    }
+
+                    // Baris TOTAL (selalu ditampilkan)
+                    let formattedTotal = totalajuan.toLocaleString('en-EN');
+                    $('#rincianWrapper').append(`
+                        <div class="form-row rincian-item mb-2 total-row">
                             <div class="col-md-8">
-                                <input type="text" class="form-control font-weight-bold" value="Total: " readonly>
+                                <input type="text" class="form-control font-weight-bold" value="Total:" readonly>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" class="form-control text-right" value="${formattedTotal}" readonly>
+                                <input type="text" id="total_rincian" class="form-control text-right font-weight-bold" 
+                                    value="${formattedTotal}" readonly>
                             </div>
                         </div>
-                    `)
+                    `);
                 }else{
                     $('#rincianWrapper').append(`
                         <p class="text-muted">Tidak ada rincian pengajuan dana.</p>
@@ -586,11 +660,20 @@ $(document).ready(function () {
 
                     // Cek jika role karyawan dan punya id_employee, sembunyikan dan disable tombol
                     if (userRole === 'krw' && userEmployeeId) {
-                        $('#submitBtn').hide().prop('disabled', true);
-                        $('#status_approval').prop('disabled', true);
-                        
+                        if (isOwnerRevised) {
+                            // ← KARYAWAN PEMILIK + REVISED → BOLEH SUBMIT
+                            $('#submitBtn').show().prop('disabled', false);
+                            $('#status_approval').prop('disabled', true);   // tidak boleh ubah status
+                            $('#note_reject').prop('disabled', true);      // boleh edit alasan revisi
+                        } else {
+                            // karyawan biasa / bukan pemilik → tidak boleh apa-apa
+                            $('#submitBtn').hide().prop('disabled', true);
+                            $('#status_approval').prop('disabled', true);
+                            $('#note_reject').prop('disabled', true);
+                        }
+
                         if (response.status == 3) {
-                            $("#loghistorysel").prop('disabled', true)
+                            $("#loghistorysel").prop('disabled', true);
                         }
 
                     } else {
@@ -615,11 +698,20 @@ $(document).ready(function () {
                         $("#note_reject").val(response.notes);
                         $("#nominal").hide()
                         $("#loghistory").hide()
+                        $("#reasonLabel").text("Alasan Ditolak:")
+                        $("#note_reject").attr("placeholder", "Alasan Ditolak: ")
                     }else if (response.status == 3){
                         $("#loghistory").show()
                         $("#cancelreason").hide()
                         $("#nominal").hide()
                         $("#loghistorysel").val(response.latestreqpprovallog.descript)
+                    }else if (response.status == 4){
+                        $("#cancelreason").show()
+                        $("#note_reject").val(response.notes);
+                        $("#nominal").hide()
+                        $("#loghistory").hide()
+                        $("#reasonLabel").text("Apa Yang Perlu Direvisi")
+                        $("#note_reject").attr("placeholder", "Apa Yang Perlu Direvisi: ")
                     }else{
                         $("#cancelreason").hide()
                         $("#nominal").hide()
@@ -657,19 +749,29 @@ $(document).ready(function () {
                 cancelreason.hide()
                 nominalInput.prop("required", true)
                 noteInput.prop("required", true)
-            }else if (status === "3"){
+            } else if (status === "3") {
                 loghistory.show()
                 nominalDiv.hide()
                 cancelreason.hide()
                 nominalInput.prop("required", false).val("")
                 noteInput.prop("required", false).val("")
-            }else if (status === "2") {
+            } 
+            // === BAGIAN BARU: Reject & Revised pakai 1 div ===
+            else if (status === "2" || status === "4") {
                 cancelreason.show()
                 nominalDiv.hide()
                 loghistory.hide()
                 nominalInput.prop("required", false).val("")
                 noteInput.prop("required", false).val("")
-            }
+
+                if (status === "2") {
+                    $("#reasonLabel").text("Alasan Ditolak:")
+                    $("#note_reject").attr("placeholder", "Alasan Ditolak: ")
+                } else { // Revised
+                    $("#reasonLabel").text("Apa Yang Perlu Direvisi")
+                    $("#note_reject").attr("placeholder", "Apa Yang Perlu Direvisi: ")
+                }
+            } 
             else {
                 cancelreason.hide()
                 nominalDiv.hide()
@@ -688,7 +790,7 @@ $(document).ready(function () {
     }
     
     function formatNumber(value) {
-        return parseInt(value).toLocaleString('id-ID'); // Format ribuan, hapus desimal
+        return parseInt(value).toLocaleString('en-EN'); // Format ribuan, hapus desimal
     }
     
     function cleanNumber(value) {
@@ -696,60 +798,175 @@ $(document).ready(function () {
         return value.replace(/[^\d]/g, ''); // Hapus semua karakter selain angka
     }
 
+    function calculateTotalRincian() {
+        let total = 0;
+        $('.rincian-nominal').each(function () {
+            let val = cleanNumber($(this).val()) || 0;
+            total += parseFloat(val);
+        });
+        $('#total_rincian').val(total.toLocaleString('en-EN'));
+    }
+
+    $('body').on('click', '#btn-tambah-rincian', function () {
+        let newRow = `
+            <div class="form-row rincian-item mb-2 editable-row">
+                <div class="col-md-7">
+                    <input type="text" class="form-control rincian-text" placeholder="Deskripsi rincian">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control text-right rincian-nominal" placeholder="0">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-sm btn-danger btn-remove-rincian">
+                        <i class="typcn typcn-trash"></i>
+                    </button>
+                </div>
+            </div>`;
+        
+        $('.total-row').before(newRow);
+    
+        // Apply mask ke nominal baru
+        $('.rincian-nominal:last').maskNumber({integer: true});
+    })
+
+    // Hapus baris
+    $('body').on('click', '.btn-remove-rincian', function () {
+        $(this).closest('.editable-row').remove();
+        calculateTotalRincian();
+    });
+
+    // Otomatis hitung ulang total saat nominal diubah
+    $('body').on('input', '.rincian-nominal', function () {
+        calculateTotalRincian();
+    });
+
     $('#editForm').submit(function(e){
-        e.preventDefault()
-        var anak_id = $('#id_anak').val()
-        var req_id = $('#id_req').val()
-        var status_approve = $('#status_approval').val()
-        var note = $('#reason').val()
-        var nominal = cleanNumber($('#nominal_input').val())
-        var notes = ""
+        e.preventDefault();
+
+        var anak_id       = $('#id_anak').val();
+        var req_id        = $('#id_req').val();
+        var status_approve = $('#status_approval').val();
+        var note          = $('#reason').val();           // deskripsi pembayaran
+        var nominal       = cleanNumber($('#nominal_input').val());
+        var notes         = "";
 
         if (status_approve == 1) {
-            notes = $('#note_input').val()
-        }else if(status_approve == 2) {
-            notes = $('#note_reject').val()
+            notes = $('#note_input').val();
+        } else if (status_approve == 2 || status_approve == 4) {
+            notes = $('#note_reject').val();
         }
 
-        var dataToSend = {
-            _token        : "{{ csrf_token() }}",
-            _method       : "PUT",
-            id_anak       : anak_id,
-            id_req        : req_id,
-            status        : status_approve,
-            notes         : note,
-            nominal_input : nominal,
-            note_input    : notes
-        };
-        
-        if ($('#loghistorysel').length) {
-            dataToSend.loghistorysel = $('#loghistorysel').val()
-        }
+        // Cek apakah ini karyawan pemilik + Revised
+        const isRevisedOwner = $('#is_revised_owner').val() == 1;
 
-        $.ajax({
-            url: "/tabungan/inbox/update/" + req_id,
-            type: "PUT", // Gunakan POST
-            data: dataToSend,
-            success: function(response) {
-                Swal.fire({
-                    title: "Berhasil!",
-                    text: "Data berhasil diupdate!",
-                    icon: "success"
-                });
+        let url = isRevisedOwner 
+            ? "/tabungan/inbox/revised/" + req_id 
+            : "/tabungan/inbox/update/" + req_id;
 
-                $('#editModal').modal('hide');
-                $('#tabledata').DataTable().ajax.reload();
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    title: "Error!",
-                    text: "Terjadi kesalahan pada server!",
-                    icon: "error"
-                });
-                console.log(xhr.responseText); // Debugging
+        let dataToSend;
+
+        if (isRevisedOwner) {
+            // ==================== PAKAI FormData (karena ada file + rincian) ====================
+            dataToSend = new FormData();
+
+            dataToSend.append('_token', "{{ csrf_token() }}");
+            dataToSend.append('_method', "PUT");
+            dataToSend.append('id_anak', anak_id);
+            dataToSend.append('id_req', req_id);
+            dataToSend.append('status', status_approve);
+            dataToSend.append('notes', note);                    // reason
+            dataToSend.append('norek', $('#norek').val());
+            dataToSend.append('bankname', $('#bankname').val());
+            dataToSend.append('accountbankname', $('#accountbankname').val());
+            dataToSend.append('nominal_input', nominal);
+            dataToSend.append('note_input', notes);
+
+            // Rincian yang diedit karyawan
+            let index = 0;
+            $('.editable-row').each(function () {
+                let desc = $(this).find('.rincian-text').val().trim();
+                let nom  = cleanNumber($(this).find('.rincian-nominal').val());
+
+                if (desc && nom > 0) {
+                    dataToSend.append(`rincian_details[${index}][rincian]`, desc);
+                    dataToSend.append(`rincian_details[${index}][nominal]`, nom);
+                    index++;
+                }
+            });
+
+            // File baru (kalau dipilih)
+            if ($('#new_file_pencairan')[0].files.length > 0) {
+                dataToSend.append('new_file_pencairan', $('#new_file_pencairan')[0].files[0]);
             }
-        });
-    })
+            if ($('#new_file_raport')[0].files.length > 0) {
+                dataToSend.append('new_file_raport', $('#new_file_raport')[0].files[0]);
+            }
+
+            // Setting AJAX untuk FormData
+            $.ajax({
+                url: url,
+                type: "POST",           // penting! FormData harus pakai POST
+                data: dataToSend,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: response.message || "Revisi berhasil disimpan.",
+                        icon: "success"
+                    });
+                    $('#editModal').modal('hide');
+                    $('#tabledata').DataTable().ajax.reload();
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        title: "Error!",
+                        text: xhr.responseJSON?.message || "Terjadi kesalahan!",
+                        icon: "error"
+                    });
+                }
+            });
+
+        } else {
+            // ==================== ADMIN / UPDATE BIASA (pakai object biasa) ====================
+            dataToSend = {
+                _token        : "{{ csrf_token() }}",
+                _method       : "PUT",
+                id_anak       : anak_id,
+                id_req        : req_id,
+                status        : status_approve,
+                notes         : note,
+                nominal_input : nominal,
+                note_input    : notes
+            };
+
+            if ($('#loghistorysel').length) {
+                dataToSend.loghistorysel = $('#loghistorysel').val();
+            }
+
+            $.ajax({
+                url: url,
+                type: "PUT",
+                data: dataToSend,
+                success: function(response) {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: "Data berhasil diupdate!",
+                        icon: "success"
+                    });
+                    $('#editModal').modal('hide');
+                    $('#tabledata').DataTable().ajax.reload();
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        title: "Error!",
+                        text: xhr.responseJSON?.message || "Terjadi kesalahan!",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+    });
 
     $('#btn-excel').on('click', function () {
         const startDate = $('#start_date').val();
@@ -766,6 +983,19 @@ $(document).ready(function () {
         }
 
         window.location.href = url;
+    });
+
+    // Tombol Ganti File → ganti tampilan jadi form upload
+    $('body').on('click', '.btn-ganti-file', function () {
+        const type = $(this).data('type');
+
+        if (type === 'pencairan') {
+            $('#pencairan-display').hide();
+            $('#pencairan-upload').show();
+        } else if (type === 'raport') {
+            $('#raport-display').hide();
+            $('#raport-upload').show();
+        }
     });
 
 </script>
