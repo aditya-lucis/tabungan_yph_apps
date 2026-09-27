@@ -387,6 +387,7 @@ $(document).ready(function () {
                         case 1: statusText = 'Approved'; statusClass = 'badge-success'; break;
                         case 2: statusText = 'Rejected'; statusClass = 'badge-danger'; break;
                         case 3: statusText = 'Awaiting'; statusClass = 'badge-info'; break;
+                        case 4: statusText = 'Revised'; statusClass = 'badge-warning'; break;
                     }
                     return `<a id="see-log" data-id="${row.id}" class="badge ${statusClass} p-2 rounded">${statusText}</a>`;
                 }
@@ -428,6 +429,10 @@ $(document).ready(function () {
                             case 3:
                                 statusText = 'Awaiting';
                                 statusClass = 'badge bg-info text-white'
+                                break;
+                            case 4:
+                                statusText = 'Revised';
+                                statusClass = 'badge bg-warning text-white'
                                 break;
                             default:
                                 statusText = 'Unknown';
