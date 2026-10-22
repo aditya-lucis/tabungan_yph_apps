@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [AuthController::class, 'index'])
     ->name('login')
     ->middleware('guest');
-Route::post('/login', [AuthController::class, 'store']);
+Route::post('/login', [AuthController::class, 'store'])->middleware('throttle:10,1');
 
 Route::middleware(['auth'])->group(function () {
 

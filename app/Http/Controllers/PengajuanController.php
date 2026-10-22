@@ -69,6 +69,15 @@ class PengajuanController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'employee_id' => 'required',
+            'fc_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'anak' => 'required|array',
+            'anak.*.surat_sekolah' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'anak.*.fc_raport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'anak.*.fc_rek_sekolah' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+        ]);
+
         try {
             DB::beginTransaction(); // Mulai transaksi database
 
@@ -217,8 +226,8 @@ class PengajuanController extends Controller
             'rincian.*' => 'required|string',
             'nominal_rincian' => 'required|array|min:1',
             'nominal_rincian.*' => 'required|numeric|min:1',
-            'filepencairan' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xlsx,xls',
-            'filefcraport' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'filepencairan' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xlsx,xls|max:5120',
+            'filefcraport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
         ]);
 
         // Validasi jumlah array harus sama
@@ -263,58 +272,57 @@ class PengajuanController extends Controller
             $filefcraport->move(public_path('upload'), $filefcraportName);
         }
 
-        $req = ReqApproval::create([
-            'id_anak' => $anakData->id,
-            'reason' => $request->tujuan_pencairan,
-            'nominal' => $request->nominal,
-            'status' => 0,
-            'file' => $filepencairanName,
-            'norek' => $request->norek,
-            'bankname' => $request->bankname,
-            'accountbankname' => $request->accountbankname,
-            'isreimburst' => $request->isreimburst
-        ]);
-        
-        $rincianList = $request->rincian;
-        $nominalList = $request->nominal_rincian;
+        try {
+            DB::beginTransaction();
 
-        foreach ($rincianList as $i => $deskripsi) {
-            ReqApprovalDetail::create([
-                'id_req_approval' => $req->id,
-                'rincian' => $deskripsi,
-                'nominal' => $nominalList[$i],
+            $req = ReqApproval::create([
+                'id_anak' => $anakData->id,
+                'reason' => $request->tujuan_pencairan,
+                'nominal' => $request->nominal,
+                'status' => 0,
+                'file' => $filepencairanName,
+                'norek' => $request->norek,
+                'bankname' => $request->bankname,
+                'accountbankname' => $request->accountbankname,
+                'isreimburst' => $request->isreimburst
             ]);
-        }
-        
-        if ($filefcraportName !== "") {
-            $anakData->update([
-                'fc_raport' => $filefcraportName
+            
+            $rincianList = $request->rincian;
+            $nominalList = $request->nominal_rincian;
+
+            foreach ($rincianList as $i => $deskripsi) {
+                ReqApprovalDetail::create([
+                    'id_req_approval' => $req->id,
+                    'rincian' => $deskripsi,
+                    'nominal' => $nominalList[$i],
+                ]);
+            }
+            
+            if ($filefcraportName !== "") {
+                $anakData->update([
+                    'fc_raport' => $filefcraportName
+                ]);
+            }
+
+            $admins = User::where('role', 'adm')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NotifReqApprovalCreated($req));
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Form lengkap sudah diterima. Mohon menunggu persetujuan."
             ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal mengajukan permohonan pencairan: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat memproses pengajuan: ' . $e->getMessage()
+            ], 500);
         }
-
-        
-        $admins = User::where('role', 'adm')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new NotifReqApprovalCreated($req));
-        }
-        
-        if (Auth::user()->role === 'krw') {
-            $emailData = [
-                'title' => 'Permohonan Pencairan Saldo Tabungan',
-                'body' => "Kamu telah mengajukan pencairan saldo tabungan untuk {$anakData->nama} sebesar Rp. " . number_format($request->nominal, 2),
-                'subject' => 'Permohonan Pencairan Saldo Tabungan',
-                'alert' => true
-            ];
-
-            $toEmail = $anakData->karyawan->user->email;
-
-            // Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        }
-        
-        return response()->json([
-            'success' => true,
-            'message' => "Form lengkap sudah diterima. Mohon menunggu persetujuan."
-        ]);
     }
 
     
@@ -336,60 +344,63 @@ class PengajuanController extends Controller
     
     public function updatebalance(Request $request, string $id){
         $query = DataAnak::find($id);
-        $now = Carbon::now();
-        $tahun = $now->year;
-        $bulan = $now->month;
-        $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
-        $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
-
-        $user = $query->karyawan->user;
-    
         if (!$query) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak ditemukan!'
             ], 404);
         }
-    
-        $nominalprogram = $query->program->total;
-    
+
+        $now = Carbon::now();
+        $tahun = $now->year;
+        $bulan = $now->month;
+        $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
+        $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
+
+        $nominalprogram = $query->program->total ?? 0;
         if ($request->nominaltotal > $nominalprogram) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tambahan nominal tidak boleh melebihi nominal yang sudah ditetapkan!'
             ], 400);
         }
-    
-        Transaction::createTransaction($query->id, $request->nominaltotal, 0, $keteranganSemester);
 
-        if ($user) {
-            $user->notify(new NotifAddCreditScore($query));
+        try {
+            DB::beginTransaction();
+
+            Transaction::createTransaction($query->id, $request->nominaltotal, 0, $keteranganSemester);
+
+            $user = $query->karyawan?->user;
+            if ($user) {
+                $user->notify(new NotifAddCreditScore($query));
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Saldo berhasil ditambahkan!'
+            ], 200);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal update balance: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan saldo: ' . $e->getMessage()
+            ], 500);
         }
-
-        $toEmail = $user->email;
-        $nominal = number_format($request->nominaltotal, 2);
-        $totalscore = $query->latestTransaction->final_balance;
-        $totalscorefix = number_format($totalscore, 2);
-
-        $emailData = [
-            'title' => 'Penambahan Saldo Tabungan',
-            'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka $keteranganSemester. Kini tabungan $query->nama bertambah sebesar Rp. $totalscorefix.",
-            'subject' => 'Penambahan Saldo Tabungan',
-            'alert' => false
-        ];
-
-        // if ($toEmail) {
-        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        // }
-    
-        return response()->json([
-            'success' => true,
-            'message' => 'Saldo berhasil ditambahkan!'
-        ], 200);
     }
     
     
     public function updatechild(Request $request) {
+        $request->validate([
+            'idanak' => 'required|exists:data_anaks,id',
+            'surat_sekolah' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'fc_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'fc_raport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'fc_rek_skolah' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+        ]);
+
         $id = $request->idanak;
         $query = DataAnak::find($id);
     
@@ -450,7 +461,7 @@ class PengajuanController extends Controller
 
     public function importAnak(Request $request) {
         $request->validate([
-            'file' => 'required|mimes:xlsx',
+            'file' => 'required|file|mimes:xlsx,xls|max:5120',
         ]);
 
         Excel::import(new DataAnakImport, $request->file('file'));
@@ -460,7 +471,7 @@ class PengajuanController extends Controller
    
     public function importSaldoAnak(Request $request) {
         $request->validate([
-            'file' => 'required|mimes:xlsx',
+            'file' => 'required|file|mimes:xlsx,xls|max:5120',
         ]);
 
         Excel::import(new DataSaldoAnakImport, $request->file('file'));
@@ -469,7 +480,6 @@ class PengajuanController extends Controller
     }
 
     public function generate(){
-        $user = "";
         $now = Carbon::now();
         $tahun = $now->year;
         $bulan = $now->month;
@@ -478,44 +488,42 @@ class PengajuanController extends Controller
         $semester = ($bulan >= 1 && $bulan <= 6) ? "Genap" : "Ganjil";
         $keteranganSemester = "Penambahan Saldo Semester $semester $tahun";
 
-        $dataAnaks = DataAnak::whereHas('karyawan', function ($q) {
-            $q->where('isactive', true);
-        })
-        ->whereHas('approval', function ($q) {
-            $q->where('status', 1);
-        })
-        ->with('program')
-        ->get();
+        try {
+            DB::beginTransaction();
 
-        foreach ($dataAnaks as $anak) {
-            Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, $keteranganSemester);
-            $user = $anak->karyawan->user;
-            $user->notify(new NotifAddCreditScore($anak));
+            DataAnak::whereHas('karyawan', function ($q) {
+                $q->where('isactive', true);
+            })
+            ->whereHas('approval', function ($q) {
+                $q->where('status', 1);
+            })
+            ->with(['program', 'karyawan.user', 'latestTransaction'])
+            ->chunk(100, function ($dataAnaks) use (&$totalamount, $keteranganSemester) {
+                foreach ($dataAnaks as $anak) {
+                    Transaction::createTransaction($anak->id, $anak->program->total ?? 0, 0, $keteranganSemester);
+                    $user = $anak->karyawan?->user;
+                    if ($user) {
+                        $user->notify(new NotifAddCreditScore($anak));
+                    }
 
-            $nominal = number_format($anak->program->total, 2);
-            $totalscorefix = number_format($anak->latestTransaction->final_balance, 2);
+                    $totalamount += ($anak->program->total ?? 0);
+                }
+            });
 
-            $emailData = [
-                'title' => 'Penambahan Saldo Tabungan',
-                'body' => "Penambahan saldo tabungan sebesar Rp. $nominal dalam rangka Penambahan Saldo Semester $semester. Kini tabungan $anak->nama bertambah sebesar Rp. $totalscorefix.",
-                'subject' => 'Penambahan Saldo Tabungan',
-                'alert' => false
-            ];
+            LogHistorySemesterCredit::create([
+                'description' => $keteranganSemester,
+                'totalamount' => $totalamount,
+                'id_user' => Auth::user()->id
+            ]);
 
-            $totalamount +=$anak->program->total;
+            DB::commit();
 
-            // $toEmail = $user->email;
-
-            // Mail::to($toEmail)->queue(new CustomEmail($emailData));
+            return back()->with('success', 'Transaksi per semester berhasil dibuat.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal generate transaksi semester: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses transaksi semester: ' . $e->getMessage());
         }
-
-        LogHistorySemesterCredit::create([
-            'description' => $keteranganSemester,
-            'totalamount' => $totalamount,
-            'id_user' => Auth::user()->id
-        ]);
-
-        return back()->with('success', 'Transaksi per semester berhasil dibuat.');
     }
     
 }

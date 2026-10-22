@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -246,9 +247,11 @@ class EmployeeController extends Controller
 
         if (!$anakData) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
-        }else {
-            ApprovalFirst::where('id_anak', $anakData->id)->delete();
-            $anakData->delete();
+        } else {
+            DB::transaction(function () use ($anakData) {
+                ApprovalFirst::where('id_anak', $anakData->id)->delete();
+                $anakData->delete();
+            });
 
             return response()->json(['success' => true, 'message' => 'Data anak berhasil dihapus!']);
         }

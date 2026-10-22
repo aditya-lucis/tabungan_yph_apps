@@ -3,7 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Employee;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,21 +12,21 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class UserEmployeeMigrate implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
+class UserEmployeeMigrate implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
 {
     /**
      * Mengambil data Employee yang belum ada di User, termasuk nama perusahaan.
      */
-    public function collection()
+    public function query()
     {
-        return Employee::where('isactive', true)
+        return Employee::query()
+            ->where('isactive', true)
             ->whereDoesntHave('user', function ($query) {
-                $query->whereColumn('users.id_employee', 'employees.id'); // Ini yang disarankan
+                $query->whereColumn('users.id_employee', 'employees.id');
             })
             ->with('company')
             ->orderBy('company_id')
-            ->orderBy('name', 'ASC')
-            ->get();
+            ->orderBy('name', 'ASC');
     }
 
 

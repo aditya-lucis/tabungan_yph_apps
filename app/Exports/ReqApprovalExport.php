@@ -4,7 +4,7 @@ namespace App\Exports;
 
 use App\Models\ReqApproval;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ReqApprovalExport implements 
-    FromCollection, 
+    FromQuery, 
     WithHeadings, 
     WithMapping, 
     WithStyles,
@@ -29,12 +29,12 @@ class ReqApprovalExport implements
         $this->end_date = $end_date;
     }
 
-    public function collection()
+    public function query()
     {
-        return ReqApproval::with(['anak.karyawan.company', 'anak', 'anak.karyawan', 'user'])
+        return ReqApproval::query()
+            ->with(['anak.karyawan.company', 'anak', 'anak.karyawan', 'user'])
             ->whereBetween('created_at', [$this->start_date, $this->end_date])
-            ->orderBy('created_at', 'DESC')
-            ->get();
+            ->orderBy('created_at', 'DESC');
     }
 
     public function headings(): array

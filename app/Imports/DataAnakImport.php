@@ -11,9 +11,14 @@ use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class DataAnakImport implements ToCollection, WithHeadingRow
+class DataAnakImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
+    public function chunkSize(): int
+    {
+        return 200;
+    }
     public function collection(Collection $rows)
     {
         $lastCompany = null;

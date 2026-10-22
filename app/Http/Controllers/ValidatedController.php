@@ -12,6 +12,8 @@ use App\Notifications\UpdateValidated;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -122,39 +124,37 @@ class ValidatedController extends Controller
             'notes' => 'required',
         ]);
 
-        $query->update($validate);
-
-        if ($user) {
-            $user->notify(new UpdateValidated($query));
+        if (!$query) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
         }
 
-        if ($request->status == 1) {
-            Transaction::createTransaction($id_anak, $saldokredit, 0, $keteranganSemester);
+        try {
+            DB::beginTransaction();
+
+            $query->update($validate);
+
+            if ($request->status == 1) {
+                Transaction::createTransaction($id_anak, $saldokredit, 0, $keteranganSemester);
+            }
+
+            if ($user) {
+                $user->notify(new UpdateValidated($query));
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diupdate!'
+            ], 200);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal validasi pendaftaran: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat validasi: ' . $e->getMessage()
+            ], 500);
         }
-
-        $title = $request->status == 1 
-            ? "Persetujuan Pendaftaran Peserta Tabungan Pendidikan" 
-            : "Permohonan Revisi Form Pendaftaran Peserta Tabungan Pendidikan";
-
-        $body = $request->status == 1
-            ? "Pendaftaran peserta tabungan kamu atas nama $anakData->nama telah disetujui. Kini $anakData->nama telah memiliki saldo tabungan awal."
-            : "Mohon maaf, pengajuan pendaftaran peserta tabungan kamu atas nama $anakData->nama tidak bisa disetujui dikarenakan $request->notes, silahkan perbarui data form pengajuan anda. Untuk info lebih lanjut anda bisa menghubungi bagian Divisi Pendidikan Yayasan Persada Hati.";
-
-        $emailData = [
-            'title' => $title,
-            'body' => $body,
-            'subject' => $title,
-            'alert' => false
-        ];
-
-        // $toEmail = $user->email;
-
-        // Mail::to($toEmail)->queue(new CustomEmail($emailData));
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil diupdate!'
-        ], 200);
     }
 
     /**

@@ -12,9 +12,14 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class DataSaldoAnakImport implements ToCollection, WithHeadingRow
+class DataSaldoAnakImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
+    public function chunkSize(): int
+    {
+        return 200;
+    }
     public function collection(Collection $collection)
     {
         $tempBalances = [];

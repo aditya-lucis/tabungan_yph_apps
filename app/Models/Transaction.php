@@ -18,8 +18,8 @@ class Transaction extends Model
 
     public static function createTransaction($idanak, $credit, $debit, $notes)
     {
-        // Ambil transaksi terakhir berdasarkan id_anak
-        $lastTransaction = self::where('id_anak', $idanak)->latest()->first();
+        // Ambil transaksi terakhir berdasarkan id_anak dengan lock untuk mencegah race condition
+        $lastTransaction = self::where('id_anak', $idanak)->lockForUpdate()->latest()->first();
         $previousBalance = $lastTransaction ? $lastTransaction->final_balance : 0;
 
         $runningBalance = $previousBalance + $credit;

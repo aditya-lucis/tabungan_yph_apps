@@ -17,7 +17,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class InboxController extends Controller
@@ -86,79 +87,64 @@ class InboxController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan!'], 404);
         }
 
-        if ($request->status == 1) {
+        if (!$anakData) {
+            return response()->json(['success' => false, 'message' => 'Data anak tidak ditemukan!'], 404);
+        }
 
-            if ($request->nominal_input > $finalBalance) {
-                return response()->json(['success' => false, 'message' => 'Nominal tidak boleh melebihi sisa tabungan!'], 404);
-            }else{
+        if ($request->status == 1 && $request->nominal_input > $finalBalance) {
+            return response()->json(['success' => false, 'message' => 'Nominal tidak boleh melebihi sisa tabungan!'], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->status == 1) {
                 Transaction::createTransaction($request->id_anak, 0, $request->nominal_input, $request->note_input);
             }
-        }
 
-        // Update data
-        $query->update([
-            'status' => $request->status,
-            'notes' => $request->note_input,
-            'nominalapprove' => $request->nominal_input,
-            'approve_by_id' => $user->id,
-        ]);
-
-        if ($request->status == 1) {
-            LogApprovalHistory::create([
-                'id_req_approval' => $query->id,
-                'descript' => 'Dokumen Telah Disetujui',
-                'status' => $request->status
+            // Update data
+            $query->update([
+                'status' => $request->status,
+                'notes' => $request->note_input,
+                'nominalapprove' => $request->nominal_input,
+                'approve_by_id' => $user->id,
             ]);
-        }elseif ($request->status == 2) {
-            LogApprovalHistory::create([
-                'id_req_approval' => $query->id,
-                'descript' => 'Dokumen Ditolak',
-                'status' => $request->status
-            ]);
-        }elseif ($request->status == 3) {
-            LogApprovalHistory::create([
-                'id_req_approval' => $query->id,
-                'descript' => $request->loghistorysel,
-                'status' => $request->status
-            ]);
+
+            if ($request->status == 1) {
+                LogApprovalHistory::create([
+                    'id_req_approval' => $query->id,
+                    'descript' => 'Dokumen Telah Disetujui',
+                    'status' => $request->status
+                ]);
+            } elseif ($request->status == 2) {
+                LogApprovalHistory::create([
+                    'id_req_approval' => $query->id,
+                    'descript' => 'Dokumen Ditolak',
+                    'status' => $request->status
+                ]);
+            } elseif ($request->status == 3) {
+                LogApprovalHistory::create([
+                    'id_req_approval' => $query->id,
+                    'descript' => $request->loghistorysel,
+                    'status' => $request->status
+                ]);
+            }
+
+            $pengaju = $anakData->karyawan?->user;
+            $query->refresh();
+
+            if ($pengaju) {
+                $pengaju->notify(new NotifReqApprovalUpdated($query));
+            }
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal update persetujuan tabungan: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem saat memperbarui status: ' . $e->getMessage()], 500);
         }
-
-        $pengaju = $anakData->karyawan->user;
-
-        $query->refresh();
-
-        if ($pengaju) {
-            $pengaju->notify(new NotifReqApprovalUpdated($query));
-        }
-
-        $nominalreq = number_format($query->nominal, 2);
-        $nominalapprove = number_format($request->nominal_input, 2);
-        $fibalbalance = $anakData->latestTransaction->final_balance - $request->nominal_input;
-        $fibalbalancefix = number_format($fibalbalance, 2);
-
-        $title = $request->status == 1 
-            ? "Persetujuan Pencairan Saldo Tabungan" 
-            : "Penolakan Pencairan Saldo Tabungan";
-
-        $body = $request->status == 1
-            ? "Pencairan saldo tabungan atas nama $anakData->nama telah disetujui dengan nominal yang disetujui Rp. $nominalapprove. Sekarang sisa saldo tabungan $anakData->nama adalah Rp. $fibalbalancefix. \nPesan dari kami: $request->note_input."
-            : "Mohon maaf, pengajuan pencairan saldo tabungan kamu atas nama $anakData->nama sebesar Rp. $nominalreq tidak bisa disetujui. Untuk info lebih lanjut anda bisa menghubungi bagian Divisi Pendidikan Yayasan Persada Hati.";
-
-
-        // $emailData = [
-        //     'title' => $title,
-        //     'body' => $body,
-        //     'subject' => $title,
-        //     'alert' => false
-        // ];
-
-        // $toEmail = $pengaju->email;
-
-        // if ($toEmail) {
-        //     Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        // }
-
-        return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui']);
     }
 
     public function export(Request $request)
@@ -230,51 +216,48 @@ class InboxController extends Controller
             $file->move(public_path('upload'), $fileFcRaportName);
         }
 
-        $query->update([
-            'reason'            => $request->notes,
-            'norek'             => $request->norek,
-            'bankname'          => $request->bankname,
-            'accountbankname'   => $request->accountbankname,
-            'file'              => $filePencairanName,
-            'status'            => 0,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        if ($request->hasFile('new_file_raport')) {
-            $anakData->update(['fc_raport' => $fileFcRaportName]);
-        }
-
-        ReqApprovalDetail::where('id_req_approval', $query->id)->delete();
-
-        foreach ($request->rincian_details as $item) {
-            ReqApprovalDetail::create([
-                'id_req_approval' => $query->id,
-                'rincian'         => $item['rincian'],
-                'nominal'         => $item['nominal'],
+            $query->update([
+                'reason'            => $request->notes,
+                'norek'             => $request->norek,
+                'bankname'          => $request->bankname,
+                'accountbankname'   => $request->accountbankname,
+                'file'              => $filePencairanName,
+                'status'            => 0,
             ]);
+
+            if ($request->hasFile('new_file_raport')) {
+                $anakData->update(['fc_raport' => $fileFcRaportName]);
+            }
+
+            ReqApprovalDetail::where('id_req_approval', $query->id)->delete();
+
+            foreach ($request->rincian_details as $item) {
+                ReqApprovalDetail::create([
+                    'id_req_approval' => $query->id,
+                    'rincian'         => $item['rincian'],
+                    'nominal'         => $item['nominal'],
+                ]);
+            }
+
+            $admins = User::where('role', 'adm')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NotifReqApprovalCreated($query));
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Revisi berhasil disimpan. Pengajuan kembali ke status New."
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal simpan revisi approval: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal menyimpan revisi: ' . $e->getMessage()], 500);
         }
-
-        $admins = User::where('role', 'adm')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new NotifReqApprovalCreated($query));   // reuse notification yang sama
-        }
-
-        if (Auth::user()->role === 'krw') {
-            $emailData = [
-                'title'   => 'Revisi Pengajuan Pencairan',
-                'body'    => "Revisi pengajuan tabungan untuk {$anakData->nama} telah dikirim kembali. Mohon menunggu persetujuan admin.",
-                'subject' => 'Revisi Pengajuan Tabungan',
-                'alert'   => true
-            ];
-
-            $toEmail = $anakData->karyawan->user->email ?? null;
-            // Mail::to($toEmail)->queue(new CustomEmail($emailData));
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Revisi berhasil disimpan. Pengajuan kembali ke status New."
-        ]);
-
     }
 
 }

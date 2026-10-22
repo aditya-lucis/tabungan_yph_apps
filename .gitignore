@@ -2,7 +2,8 @@
 /node_modules
 /public/build
 /public/hot
-/public/upload
+/public/upload/*
+!/public/upload/.htaccess
 /public/storage
 /storage/*.key
 /vendor

@@ -8,9 +8,14 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class EmployeeImports implements ToCollection, WithHeadingRow
+class EmployeeImports implements ToCollection, WithHeadingRow, WithChunkReading
 {
+    public function chunkSize(): int
+    {
+        return 200;
+    }
     /**
     * @param array $row
     *
