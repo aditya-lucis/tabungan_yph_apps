@@ -5,13 +5,35 @@
 <link href="{{ asset('assets/master/lib/datatables.net-responsive-dt/css/responsive.dataTables.min.css') }}" rel="stylesheet">
 <link href="{{ asset('assets/master/lib/select2/css/select2.min.css') }}" rel="stylesheet">
 <style>
+    .dashboard-hero {
+        background: var(--yph-primary-gradient);
+        color: white;
+        border-radius: var(--yph-radius);
+        padding: 22px;
+        box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.35);
+        margin-bottom: 22px;
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-hero::after {
+        content: "";
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 140px;
+        height: 140px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        pointer-events: none;
+    }
     .table-card {
-        background: white;
+        background: var(--yph-card);
         padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid black;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
         width: 100%;
+        margin-bottom: 20px;
     }
     #example2 {
         width: 100% !important;
@@ -23,18 +45,35 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 20px; /* jarak antar chart */
+        gap: 18px;
     }
 
     .chart-card {
-        background: white;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-radius: 12px;
+        background: var(--yph-card);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        border-radius: var(--yph-radius);
         padding: 20px;
-        flex: 1 1 45%; /* lebar sekitar 45% dan bisa menyesuaikan */
+        flex: 1 1 45%;
         box-sizing: border-box;
-        min-width: 300px; /* agar tidak terlalu kecil di layar sempit */
+        min-width: 290px;
+        max-width: 100%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }    
+    .chart-card:hover {
+        box-shadow: var(--yph-shadow-hover);
+    }
+    .chart-title-badge {
+        color: var(--yph-primary);
+        font-weight: 700;
+        font-size: 15px;
+        text-align: center;
+        margin-bottom: 18px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        padding: 8px 14px;
+        border-radius: 10px;
+    }
     /* Styling untuk legend HTML agar rapi dan bisa di-scroll */
     #companyLegend ul {
         list-style: none;
@@ -46,7 +85,7 @@
         align-items: center;
         margin-bottom: 6px;
         font-size: 13px;
-        color: #333;
+        color: #334155;
     }
     #companyLegend li span {
         display: inline-block;
@@ -59,64 +98,96 @@
     .sticky-header th {
         position: sticky;
         top: 0;
-        background: #f8f9fa;
-        font-weight: bold;
+        background: #f1f5f9;
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 13px;
         z-index: 10;
+        border-bottom: 2px solid var(--yph-border);
     }
 
     .sticky-footer td {
         position: sticky;
         bottom: 0;
-        background: #f8f9fa;
-        font-weight: bold;
+        background: #f8fafc;
+        font-weight: 700;
+        color: #0f172a;
         z-index: 10;
+        border-top: 2px solid var(--yph-border);
     }
 
-
+    .table-fintech {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    .table-fintech th, .table-fintech td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+    .table-fintech tbody tr:hover {
+        background-color: #f8fafc;
+    }
 </style>
 @endsection
 
 @section('content')
+    <div class="dashboard-hero">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Ringkasan Sistem</span>
+                <h3 class="mt-1 mb-0" style="font-weight: 800; font-size: 24px; color: white;">Dashboard Tabungan YPH</h3>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); color: white; padding: 8px 14px; border-radius: 30px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-users mr-1"></i> Total Anak: {{ $sumallChild }}
+                </span>
+            </div>
+        </div>
+    </div>
+
     <div class="chart-container">
         <!-- Chart 1 -->
         <div class="chart-card">
-            <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
-                    background:#eaf1ff; padding:6px 12px; border-radius:6px;">Total Anak Per Jenjang Pendidikan</h3>
+            <div class="chart-title-badge">
+                <i class="fas fa-graduation-cap mr-1"></i> Total Anak Per Jenjang Pendidikan
+            </div>
 
-            <div style="height:300px; width:300px; margin:auto;">
+            <div style="height:280px; width:100%; max-width:300px; margin:auto;">
                 <canvas id="programChart"></canvas>
             </div>
-            <div style="text-align:center; color:#002776;">
-                Total Anak Keseluruhan: <b>{{ $sumallChild }}</b>
+            <div class="text-center mt-3 pt-2" style="border-top: 1px dashed var(--yph-border); color: #475569; font-size: 13px;">
+                Total Terdata: <strong style="color: var(--yph-primary);">{{ $sumallChild }} Anak</strong>
             </div>
         </div>
         
         <!-- Chart Card -->
         <div class="chart-card">
-            <h3 style="color:#003399; font-weight:800; text-align:center; margin-bottom:20px;
-                    background:#eaf1ff; padding:6px 12px; border-radius:6px;">
-                <b>Total Anak Per Company</b>
-            </h3>
-            <div style="height:300px; width:300px; margin:auto;">
-                <canvas id="chartCompany" height="300"></canvas>
+            <div class="chart-title-badge">
+                <i class="fas fa-building mr-1"></i> Total Anak Per Company
+            </div>
+            <div style="height:280px; width:100%; max-width:300px; margin:auto;">
+                <canvas id="chartCompany" height="280"></canvas>
             </div>
 
             <!-- Legend di luar canvas agar bisa discroll -->
             <div id="chartLegend" 
-                style="max-height:150px; overflow-y:auto; margin-top:10px; border:1px solid #eee; border-radius:10px; padding:10px; font-size:14px;">
+                style="max-height:140px; overflow-y:auto; margin-top:12px; border:1px solid #e2e8f0; background: #f8fafc; border-radius:10px; padding:10px; font-size:13px;">
             </div>
 
-            <h4 style="text-align:center; color:#002776;">
-                Total Anak Keseluruhan: <b>{{ $companychild->sum('total_anak_perusahaan') }}</b>
-            </h4>
+            <div class="text-center mt-3 pt-2" style="border-top: 1px dashed var(--yph-border); color: #475569; font-size: 13px;">
+                Total Seluruh Perusahaan: <strong style="color: var(--yph-primary);">{{ $companychild->sum('total_anak_perusahaan') }} Anak</strong>
+            </div>
         </div>
     </div>
     <br>
 
-    <div class="table-card table-responsive">
-        <h3>Saldo Per Jenjang Pendidikan</h3>
-        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
-        <table class="table table-bordered">
+    <div class="table-card">
+        <h5 style="color: var(--yph-primary); font-weight: 700; margin-bottom: 16px;">
+            <i class="fas fa-layer-group mr-2 text-primary"></i> Saldo Per Jenjang Pendidikan
+        </h5>
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto; border: 1px solid var(--yph-border); border-radius: 12px;">
+        <table class="table table-hover table-fintech mb-0">
             <thead class="sticky-header">
                 <tr>
                     <th>Jenjang Pendidikan</th>
@@ -136,12 +207,12 @@
                 @endphp
                 @foreach ($saldoPerJenjang as $row)
                     <tr>
-                        <td>{{ $graduate != $row->jenjang ? $row->jenjang : '' }}</td>
+                        <td><strong>{{ $graduate != $row->jenjang ? $row->jenjang : '' }}</strong></td>
                         <td>{{ $row->tahun }}</td>
-                        <td>{{ $row->jumlah_anak }}</td>
+                        <td><span class="badge badge-light" style="font-weight:600;">{{ $row->jumlah_anak }}</span></td>
                         <td>Rp {{ number_format($row->semester_genap, 0, ',', '.') }}</td>
                         <td>Rp {{ number_format($row->semester_ganjil, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($row->total_tahun, 0, ',', '.') }}</td>
+                        <td><strong>Rp {{ number_format($row->total_tahun, 0, ',', '.') }}</strong></td>
                     </tr>
                     @php
                         $totalGenap += $row->semester_genap;
@@ -156,14 +227,13 @@
                     <td colspan="3"><strong>TOTAL KESELURUHAN</strong></td>
                     <td><strong>Rp {{ number_format($totalGenap, 0, ',', '.') }}</strong></td>
                     <td><strong>Rp {{ number_format($totalGanjil, 0, ',', '.') }}</strong></td>
-                    <td><strong>Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
+                    <td><strong class="text-primary">Rp {{ number_format($totalAkhir, 0, ',', '.') }}</strong></td>
                 </tr>
             </tfoot>
         </table>
         </div>
     </div>
 
-    <br>
     @php
         $groupedData = $semesterData->groupBy('company_name')->map(function ($programs) {
             return $programs->groupBy('program_level');
@@ -173,10 +243,12 @@
         $totalDebit = 0;
     @endphp
 
-    <div class="table-card table-responsive">
-        <h3>Saldo Per Semester</h3>
-        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
-            <table class="table table-bordered" style="border-collapse: collapse; width: 100%;">
+    <div class="table-card">
+        <h5 style="color: var(--yph-primary); font-weight: 700; margin-bottom: 16px;">
+            <i class="fas fa-calendar-alt mr-2 text-primary"></i> Saldo Per Semester
+        </h5>
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto; border: 1px solid var(--yph-border); border-radius: 12px;">
+            <table class="table table-hover table-fintech mb-0">
                 <thead class="sticky-header">
                     <tr>
                         <th>Perusahaan</th>
@@ -201,20 +273,20 @@
                                 return $item->tahun * 10 + ($item->semester === 'Semester Genap' ? 1 : 2);
                             }) as $data)
                                 <tr>
-                                    <td>{{ $showCompany ? $companyName : '' }}</td>
+                                    <td><strong>{{ $showCompany ? $companyName : '' }}</strong></td>
 
                                     {{-- Tampilkan program level hanya saat tahun baru atau pertama --}}
                                     <td>
                                         @if ($showProgram || $lastYear !== $data->tahun)
-                                            {{ $programLevel }}
+                                            <span class="badge badge-light">{{ $programLevel }}</span>
                                         @endif
                                     </td>
 
                                     <td>{{ $data->tahun }}</td>
                                     <td>{{ $data->semester }}</td>
-                                    <td>Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</td>
+                                    <td class="text-success font-weight-bold">Rp {{ number_format($data->total_credit, 0, ',', '.') }}</td>
+                                    <td class="text-danger font-weight-bold">Rp {{ number_format($data->total_debit, 0, ',', '.') }}</td>
+                                    <td><strong>Rp {{ number_format($data->saldo_akhir, 0, ',', '.') }}</strong></td>
                                 </tr>
 
                                 @php
@@ -233,20 +305,21 @@
                     <tr>
                         <td colspan="3"></td>
                         <td><b>TOTAL</b></td>
-                        <td><b>Rp {{ number_format($totalCredit, 2, ',', '.') }}</b></td>
-                        <td><b>Rp {{ number_format($totalDebit, 2, ',', '.') }}</b></td>
-                        <td><b>Rp {{ number_format($totalCredit - $totalDebit, 2, ',', '.') }}</b></td>
+                        <td><b class="text-success">Rp {{ number_format($totalCredit, 2, ',', '.') }}</b></td>
+                        <td><b class="text-danger">Rp {{ number_format($totalDebit, 2, ',', '.') }}</b></td>
+                        <td><b class="text-primary">Rp {{ number_format($totalCredit - $totalDebit, 2, ',', '.') }}</b></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
-    <br>
-    <div class="table-card table-responsive">
-    <h3>Saldo Per Tahun</h3>
-        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
-            <table class="table table-bordered">
+    <div class="table-card">
+        <h5 style="color: var(--yph-primary); font-weight: 700; margin-bottom: 16px;">
+            <i class="fas fa-chart-line mr-2 text-primary"></i> Saldo Per Tahun
+        </h5>
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto; border: 1px solid var(--yph-border); border-radius: 12px;">
+            <table class="table table-hover table-fintech mb-0">
                 <thead class="sticky-header">
                     <tr>
                         <th>Perusahaan</th>

@@ -4,129 +4,144 @@
 <link href="{{ asset('assets/master/lib/datatables.net-responsive-dt/css/responsive.dataTables.min.css') }}" rel="stylesheet">
 <link href="{{ asset('assets/master/lib/select2/css/select2.min.css') }}" rel="stylesheet">
 <style>
-    /* Custom Styling */
-    .table-card {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Efek shadow untuk kartu */
-        border: 1px solid black; /* Menambahkan border hitam */
-        width: 100%; /* Agar kartu selebar mungkin */
+    .table-container-card {
+        background: var(--yph-card);
+        padding: 22px;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        width: 100%;
     }
     #example2 {
-        width: 100% !important; /* Paksa tabel menjadi 100% */
+        width: 100% !important;
     }
     .custom-link {
-        text-decoration: none;  /* Hilangkan garis bawah */
-        color: rgb(64,64,64);           /* Warna default hitam */
+        text-decoration: none;
+        color: var(--yph-primary);
+        font-weight: 600;
     }
-
     .custom-link:hover, .custom-link:focus {
-        color: blue;            /* Warna biru saat hover atau klik */
+        color: #1d4ed8;
         text-decoration: underline;
     }
-
+    .action-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
 </style>
 @endsection
 @section('content')
 
-<div class="az-content-breadcrumb">
-    <span>Master</span>
-    <span>Employee</span>
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+        <div class="az-content-breadcrumb mb-1">
+            <span>Master</span>
+            <span>Employee</span>
+        </div>
+        <h4 class="mb-0" style="font-weight: 800; color: #0f172a;">Daftar Karyawan</h4>
+        <small class="text-muted">Data karyawan Persada Group yang terdaftar dalam program tabungan</small>
+    </div>
 </div>
 
-<div class="az-content-label mg-b-5">Daftar karyawan Persada Group</div>
-          <!-- <p class="mg-b-20">Responsive is an extension for DataTables that resolves that problem by optimising the table's layout for different screen sizes through the dynamic insertion and removal of columns from the table.</p> -->
-<br>
-          <div class="table-card">
-            <div class="row grid-margin">
-                    <div class="col-12">
-                        <button type="button" class="btn btn-sm btn-primary" id="btn-add">
-                        <i class="typcn typcn-document-add"></i> Karyawan
-                        </button>
-                        <a class="btn btn-sm btn-success" id="btn-excel">
-                        <i class="typcn typcn-folder-add"></i> Tambah Data Karyawan Dengan Excel
-                        </a>
-                    </div>
-                  </div>
+<div class="table-container-card">
+    <div class="action-header-bar">
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-fintech-primary" id="btn-add">
+                <i class="fas fa-user-plus mr-1"></i> Tambah Karyawan
+            </button>
+            <a class="btn btn-fintech-secondary" id="btn-excel">
+                <i class="fas fa-file-excel mr-1 text-success"></i> Import Excel
+            </a>
+        </div>
+    </div>
 
-            <table id="example2" class="table">
-              <thead>
+    <div class="table-responsive">
+        <table id="example2" class="table table-hover w-100">
+            <thead>
                 <tr>
-                  <th class="wd-20p">No</th>
-                  <th class="wd-25p">Nama</th>
-                  <th class="wd-25p">Affco</th>
-                  <th class="wd-25p">Kontak</th>
-                  <th class="wd-25p">Email</th>
-                  <th class="wd-25p">Status</th>
-                  <th class="wd-25p">Action</th>
+                    <th class="wd-10p">No</th>
+                    <th class="wd-25p">Nama</th>
+                    <th class="wd-20p">Affco</th>
+                    <th class="wd-15p">Kontak</th>
+                    <th class="wd-15p">Email</th>
+                    <th class="wd-15p">Status</th>
+                    <th class="wd-15p">Action</th>
                 </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 
-            <!-- Modal Tambah Excel -->
-            <div class="modal fade" id="addModalExcel" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addModalLabel">Upload File Excel Berisi Data Karyawan</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addFormEcel">
-                                @csrf
-                                <div class="form-group">
-                                    <label for="new_excel_file">Silahkan klik <a href="/get-format-employee">di sini</a> untuk mendapat format data karyawan</label>
-                                    <!-- <input type="file" class="custom-file-input" id="addFile" name="addFile"> -->
-                                    <div class="row row-sm">
-                                        <div class="col-sm-7 col-md-6 col-lg-9">
-                                        <input type="file" class="custom-file-input" id="addFile" name="addFile">
-                                        <label class="custom-file-label" for="customFile">Choose file</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-primary">Simpan</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<!-- Modal Tambah Excel -->
+<div class="modal fade" id="addModalExcel" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="border-radius: 16px; overflow: hidden; border: none;">
+            <div class="modal-header text-white" style="background: var(--yph-primary-gradient);">
+                <h5 class="modal-title font-weight-bold" id="addModalLabel">
+                    <i class="fas fa-file-excel mr-2"></i> Upload File Data Karyawan
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
+            <div class="modal-body p-4">
+                <form id="addFormEcel">
+                    @csrf
+                    <div class="alert alert-info py-2 px-3" style="border-radius: 10px; font-size: 13px;">
+                        <i class="fas fa-info-circle mr-1"></i> Format template data karyawan dapat diunduh <a href="/get-format-employee" class="font-weight-bold text-primary">di sini</a>.
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="font-weight-bold" style="font-size: 13px;">Pilih File Excel (.xlsx, .xls)</label>
+                        <input type="file" class="form-control-file" id="addFile" name="addFile" accept=".xlsx,.xls,.csv" required>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-fintech-primary">Simpan Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <div class="modal fade" id="addAuthentikasi" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addModalLabel">Autentikasi Karyawan</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addFormAuth">
-                                @csrf
-                                <input type="hidden" name="idkaryawan" id="idkaryawan">
-                                <div class="mb-3">
-                                    <label for="new_password" class="form-label">New Password</label>
-                                    <input type="password" class="form-control" id="new_password" name="new_password">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirm_password" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
-                                    <small id="passwordError" class="text-danger" style="display: none;"></small>
-                                </div>
-                                <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Update</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<div class="modal fade" id="addAuthentikasi" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="border-radius: 16px; overflow: hidden; border: none;">
+            <div class="modal-header text-white" style="background: var(--yph-primary-gradient);">
+                <h5 class="modal-title font-weight-bold" id="addModalLabel">
+                    <i class="fas fa-key mr-2"></i> Autentikasi Karyawan
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
+            <div class="modal-body p-4">
+                <form id="addFormAuth">
+                    @csrf
+                    <input type="hidden" name="idkaryawan" id="idkaryawan">
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label font-weight-bold" style="font-size: 13px;">Password Baru</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Minimal 6 karakter" style="border-radius: 10px;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label font-weight-bold" style="font-size: 13px;">Konfirmasi Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Ulangi password baru" style="border-radius: 10px;">
+                        <small id="passwordError" class="text-danger" style="display: none;"></small>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Batal</button>
+                        <button type="submit" id="submitBtn" class="btn btn-fintech-primary" disabled>Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('script')

@@ -3,73 +3,92 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.0/css/buttons.dataTables.css">
 <style>
-    /* Custom Styling */
-    .table-card {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Efek shadow untuk kartu */
-        border: 1px solid black; /* Menambahkan border hitam */
-        width: 100%; /* Agar kartu selebar mungkin */
+    .table-container-card {
+        background: var(--yph-card);
+        padding: 22px;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        width: 100%;
     }
     #tabungan {
-        width: 100% !important; /* Paksa tabel menjadi 100% */
+        width: 100% !important;
     }
     .custom-link {
-        text-decoration: none;  /* Hilangkan garis bawah */
-        color: rgb(64,64,64);           /* Warna default hitam */
+        text-decoration: none;
+        color: var(--yph-primary);
+        font-weight: 600;
+        display: block;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
     }
-
     .custom-link:hover, .custom-link:focus {
-        color: blue;            /* Warna biru saat hover atau klik */
-        text-decoration: underline;
+        background: #eff6ff;
+        color: #1d4ed8;
     }
     .ui-datepicker {
         z-index: 1051 !important;
     }
     .product-title {
-        font-style: bold;
+        font-weight: 600;
+        font-size: 13px;
+        color: #334155;
     }
 </style>
 @endsection
 @section('content')
-<div class="az-content-breadcrumb">
-    <span>Tabungan</span>
-    <span>Data Peserta Tabungan</span>
-</div>
 
-<div class="az-content-label mg-b-5">Daftar Seluruh Tabungan Peserta Yayasan Persada Hati</div>
-<br>
-<div class="table-card">
-<div class="row grid-margin">
-    <div class="col-12">
-        <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseMigrasi" 
-            aria-expanded="false" aria-controls="collapseMigrasi"><i class="typcn typcn-upload"></i>
-            Migrasi Data
-        </button>
-        <div class="collapse mt-2" id="collapseMigrasi">
-            <div class="card card-body">
-                <a class="custom-link" id="migratedataanak"><i class="typcn typcn-upload"></i> Peserta Tabungan</a>
-                <a class="custom-link" id="migratesaldoanak"><i class="typcn typcn-upload"></i> Saldo Peserta Tabungan</a>
-            </div>
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+        <div class="az-content-breadcrumb mb-1">
+            <span>Tabungan</span>
+            <span>Data Peserta Tabungan</span>
         </div>
-        <button class="btn btn-secondary" id="generateSemester" type="button"><i class="typcn typcn-input-checked"></i>
-            Tambah Saldo Per Semester
-        </button>
+        <h4 class="mb-0" style="font-weight: 800; color: #0f172a;">Seluruh Peserta Tabungan</h4>
+        <small class="text-muted">Daftar saldo dan tabungan peserta Yayasan Persada Hati</small>
     </div>
 </div>
 
-    <table id="tabungan" class="table table-bordered mg-b-0">
-        <thead>
-            <th class="wd-10p text-center">No. </th>
-            <th class="wd-15p text-left">Nama Anak</th>
-            <th class="wd-15p text-left">Nama Orangtua</th>
-            <th class="wd-20p text-left">Company</th>
-            <th class="wd-20p text-left">Jenjang Pendidikan</th>
-            <th class="wd-20p text-left">Nama Sekolah</th>
-            <th class="wd-20p text-right">Saldo</th>
-        </thead>
-    </table>
+<div class="table-container-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-fintech-secondary" type="button" data-toggle="collapse" data-target="#collapseMigrasi" 
+                aria-expanded="false" aria-controls="collapseMigrasi">
+                <i class="fas fa-file-import mr-1 text-primary"></i> Migrasi Data <i class="fas fa-chevron-down ml-1" style="font-size: 10px;"></i>
+            </button>
+            <button class="btn btn-fintech-primary" id="generateSemester" type="button">
+                <i class="fas fa-coins mr-1"></i> Tambah Saldo Per Semester
+            </button>
+        </div>
+    </div>
+
+    <div class="collapse mb-3" id="collapseMigrasi">
+        <div class="p-3" style="background: #f8fafc; border: 1px dashed var(--yph-border); border-radius: 12px; max-width: 400px;">
+            <a class="custom-link" id="migratedataanak" style="cursor: pointer;">
+                <i class="fas fa-users mr-2 text-primary"></i> Import Peserta Tabungan (.xlsx)
+            </a>
+            <a class="custom-link" id="migratesaldoanak" style="cursor: pointer;">
+                <i class="fas fa-wallet mr-2 text-success"></i> Import Saldo Tabungan (.xlsx)
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="tabungan" class="table table-hover w-100 mb-0">
+            <thead>
+                <tr>
+                    <th class="wd-10p text-center">No. </th>
+                    <th class="wd-15p text-left">Nama Anak</th>
+                    <th class="wd-15p text-left">Nama Orangtua</th>
+                    <th class="wd-20p text-left">Company</th>
+                    <th class="wd-20p text-left">Jenjang Pendidikan</th>
+                    <th class="wd-20p text-left">Nama Sekolah</th>
+                    <th class="wd-20p text-right">Saldo</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">

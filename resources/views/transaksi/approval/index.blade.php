@@ -4,71 +4,105 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.0/css/buttons.dataTables.css">
 
 <style>
-    /* Custom Styling */
     .table-card {
         background: white;
         padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Efek shadow untuk kartu */
-        border: 1px solid black; /* Menambahkan border hitam */
-        width: 100%; /* Agar kartu selebar mungkin */
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        width: 100%;
+        margin-bottom: 24px;
     }
 
+    .filter-card {
+        background: white;
+        padding: 16px 20px;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        margin-bottom: 20px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    @media (min-width: 768px) {
+        .filter-grid {
+            grid-template-columns: minmax(160px, 240px) minmax(160px, 240px) auto;
+        }
+    }
+
+    .btn-filter {
+        height: 38px;
+        border-radius: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 16px;
+    }
 </style>
 @endsection
 @section('content')
-<div class="az-content-breadcrumb">
+<div class="az-content-breadcrumb mb-3">
     <span>Tabungan</span>
     <span>Approval Pengajuan</span>
 </div>
 
-<div class="mb-3">
-  <div class="row align-items-end">
-    <div class="col-auto">
-      <label for="start_date" class="form-label">Tanggal Awal:</label>
-      <div class="input-group input-group-sm">
-        <span class="input-group-text">
-          <i class="typcn typcn-calendar-outline"></i>
+<div class="filter-card">
+  <div class="filter-grid">
+    <div>
+      <label for="start_date" class="form-label" style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Tanggal Awal:</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light border-right-0">
+          <i class="typcn typcn-calendar-outline text-muted"></i>
         </span>
-        <input type="text" id="start_date" class="form-control fc-datepicker" placeholder="Awal" style="max-width: 140px;">
+        <input type="text" id="start_date" class="form-control fc-datepicker" placeholder="Pilih Awal" style="height: 38px; border-radius: 0 10px 10px 0;">
       </div>
     </div>
-    <div class="col-auto">
-      <label for="end_date" class="form-label">Tanggal Akhir:</label>
-      <div class="input-group input-group-sm">
-        <span class="input-group-text">
-          <i class="typcn typcn-calendar-outline"></i>
+    <div>
+      <label for="end_date" class="form-label" style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Tanggal Akhir:</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light border-right-0">
+          <i class="typcn typcn-calendar-outline text-muted"></i>
         </span>
-        <input type="text" id="end_date" class="form-control fc-datepicker" placeholder="Akhir" style="max-width: 140px;">
+        <input type="text" id="end_date" class="form-control fc-datepicker" placeholder="Pilih Akhir" style="height: 38px; border-radius: 0 10px 10px 0;">
       </div>
     </div>
-    <div class="col-auto">
-      <button id="filter-btn" class="btn btn-primary btn-sm mt-2 rounded"><i class="typcn typcn-zoom"></i> Search</button>
+    <div class="d-flex flex-wrap gap-2 pt-1">
+      <button id="filter-btn" class="btn btn-primary btn-filter flex-fill flex-md-grow-0"><i class="typcn typcn-zoom"></i> Filter Data</button>
       @if ($user_role == 'adm')
-        <button id="btn-excel" class="btn btn-success btn-sm mt-2 rounded"><i class="typcn typcn-download-outline"></i> Export Excel</button>
+        <button id="btn-excel" class="btn btn-success btn-filter flex-fill flex-md-grow-0"><i class="typcn typcn-download-outline"></i> Export Excel</button>
       @endif
     </div>
   </div>
 </div>
 
-<div class="table-responsive table-card">
-    <table id="tabledata" class="table table-striped table-hover table-bordered align-middle" style="width:auto;">
-        <thead class="table text-center">
-            <tr>
-                <th style="white-space: nowrap;">No.</th>
-                <th style="white-space: nowrap;">Nama Karyawan</th>
-                <th style="white-space: nowrap;">Companie</th>
-                <th style="white-space: nowrap;">Nama Anak</th>
-                <th style="white-space: nowrap;">Tujuan Pencairan</th>
-                <th style="white-space: nowrap;">Nominal Yang Diajukan</th>
-                <th style="white-space: nowrap;">Tanggal Pengajuan</th>
-                <th style="white-space: nowrap;">Tipe Pencairan</th>
-                <th style="white-space: nowrap;">Status</th>
-                <th style="white-space: nowrap;">Action</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<div class="table-card">
+    <div class="table-responsive">
+        <table id="tabledata" class="table table-striped table-hover table-bordered align-middle w-100">
+            <thead class="table text-center">
+                <tr>
+                    <th style="white-space: nowrap;">No.</th>
+                    <th style="white-space: nowrap;">Nama Karyawan</th>
+                    <th style="white-space: nowrap;">Companie</th>
+                    <th style="white-space: nowrap;">Nama Anak</th>
+                    <th style="white-space: nowrap;">Tujuan Pencairan</th>
+                    <th style="white-space: nowrap;">Nominal Yang Diajukan</th>
+                    <th style="white-space: nowrap;">Tanggal Pengajuan</th>
+                    <th style="white-space: nowrap;">Tipe Pencairan</th>
+                    <th style="white-space: nowrap;">Status</th>
+                    <th style="white-space: nowrap;">Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -352,9 +386,7 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         ordering: true,
-        fixedColumns: {
-            left: 4
-        },
+        fixedColumns: $(window).width() >= 992 ? { left: 2 } : false,
         ajax: {
             url: '{!! url()->current() !!}',
             data: function (d) {

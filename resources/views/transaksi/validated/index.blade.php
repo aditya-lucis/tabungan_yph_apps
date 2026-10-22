@@ -5,102 +5,123 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.0/css/buttons.dataTables.css">
 
 <style>
-    .table-card {
-        background-color: #fff;
-        padding: 24px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        border: 1px solid #dee2e6;
+    .filter-card {
+        background-color: var(--yph-card);
+        padding: 20px;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
+        margin-bottom: 20px;
+    }
+    .table-container-card {
+        background-color: var(--yph-card);
+        padding: 20px;
+        border-radius: var(--yph-radius);
+        box-shadow: var(--yph-shadow);
+        border: 1px solid var(--yph-border);
         width: 100%;
     }
-
     .table th, .table td {
         vertical-align: middle;
         white-space: nowrap;
     }
-
-    .table th {
-        background-color: #f8f9fa;
-    }
-
     .input-group-text {
-        background-color: #f0f0f0;
-        border-right: 0;
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+        border-radius: 10px 0 0 10px !important;
+        color: #64748b;
     }
-
     .form-control {
-        border-left: 0;
+        border-color: #cbd5e1;
+        border-radius: 0 10px 10px 0 !important;
+    }
+    .form-control:focus {
+        border-color: var(--yph-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .form-section label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #475569;
+        margin-bottom: 4px;
     }
 </style>
 @endsection
 
 @section('content')
-<div class="az-content-breadcrumb mb-3">
-    <span>Tabungan</span>
-    <span>Approval Pendaftaran</span>
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+        <div class="az-content-breadcrumb mb-1">
+            <span>Tabungan</span>
+            <span>Approval Pendaftaran</span>
+        </div>
+        <h4 class="mb-0" style="font-weight: 800; color: #0f172a;">Approval Pendaftaran</h4>
+    </div>
 </div>
 
-<div class="mb-4">
+<div class="filter-card">
     <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label for="start_date" class="form-label">Tanggal Awal:</label>
-            <div class="input-group input-group-sm">
+        <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+            <label for="start_date" class="form-label" style="font-weight: 600; font-size: 13px; color: #475569;">Tanggal Awal:</label>
+            <div class="input-group">
                 <span class="input-group-text">
                     <i class="typcn typcn-calendar-outline"></i>
                 </span>
-                <input type="text" id="start_date" class="form-control fc-datepicker" placeholder="Awal">
+                <input type="text" id="start_date" class="form-control fc-datepicker" placeholder="YYYY-MM-DD">
             </div>
         </div>
 
-        <div class="col-md-3">
-            <label for="end_date" class="form-label">Tanggal Akhir:</label>
-            <div class="input-group input-group-sm">
+        <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+            <label for="end_date" class="form-label" style="font-weight: 600; font-size: 13px; color: #475569;">Tanggal Akhir:</label>
+            <div class="input-group">
                 <span class="input-group-text">
                     <i class="typcn typcn-calendar-outline"></i>
                 </span>
-                <input type="text" id="end_date" class="form-control fc-datepicker" placeholder="Akhir">
+                <input type="text" id="end_date" class="form-control fc-datepicker" placeholder="YYYY-MM-DD">
             </div>
         </div>
 
-        <div class="col-md-auto">
-            <button id="filter-btn" class="btn btn-primary btn-sm mt-2 rounded">
-                <i class="typcn typcn-zoom"></i> Search
+        <div class="col-md-4 col-sm-12">
+            <button id="filter-btn" class="btn btn-fintech-primary w-100" style="min-height: 40px; padding: 8px 16px;">
+                <i class="typcn typcn-zoom"></i> Filter Data
             </button>
         </div>
     </div>
 </div>
 
-<div class="table-responsive table-card">
-    <table id="tabledata" class="table table-striped table-hover table-bordered text-center w-100">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Nama Karyawan</th>
-                <th>Companie</th>
-                <th>Nama Anak</th>
-                <th>Tanggal Pengajuan</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Data akan dimuat di sini -->
-        </tbody>
-    </table>
+<div class="table-container-card">
+    <div class="table-responsive">
+        <table id="tabledata" class="table table-striped table-hover text-center w-100 mb-0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Nama Karyawan</th>
+                    <th>Companie</th>
+                    <th>Nama Anak</th>
+                    <th>Tanggal Pengajuan</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data akan dimuat di sini -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="editModalLabel">
+        <div class="modal-content shadow-lg" style="border-radius: 16px; overflow: hidden; border: none;">
+            <div class="modal-header text-white" style="background: var(--yph-primary-gradient);">
+                <h5 class="modal-title font-weight-bold" id="editModalLabel">
                     <i class="fas fa-edit mr-2"></i> Data Pengajuan Tabungan
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body px-4 py-3">
+            <div class="modal-body p-4">
                 <form id="editForm">
                     @csrf
                     <input type="hidden" id="id_anak">
@@ -272,9 +293,7 @@
             processing: true,
             serverSide: true,
             ordering: true,
-            fixedColumns: {
-                left: 4
-            },
+            fixedColumns: $(window).width() >= 992 ? { left: 2 } : false,
             ajax: {
                 url: '{!! url()->current() !!}',
                 data: function (d) {
